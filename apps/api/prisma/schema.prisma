@@ -1,0 +1,128 @@
+// 피즐리 Prisma 스키마 초안 (BE2 소관 테이블 중심)
+// User / QuestLog / RewardLog는 BE1(로그인·온보딩, 퀘스트 완료 기록, 보상 로직) 소관과 맞닿아 있어
+// 관계를 위해 최소 필드만 넣었습니다. BE1과 필드 확정 후 조정이 필요합니다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum QuestCategory {
+  EYE // 눈 건강
+  WRIST // 손목 관리
+  NECK_SHOULDER // 목·어깨 관리
+  BREATH_REST // 호흡·휴식
+}
+
+enum QuestDurationMinutes {
+  MIN_1
+  MIN_3
+  MIN_5
+}
+
+enum PassPlanType {
+  FREE
+  PREMIUM
+}
+
+// BE1 소관: 로그인/온보딩 저장
+model User {
+  id            String   @id @default(uuid())
+  testAccountId String   @unique @map("test_account_id")
+  nickname      String?
+  interests     Json? // 온보딩 관심영역 (QuestCategory[])
+  restrictions  Json? // 온보딩 제한사항
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  pizzly            Pizzly?
+  questLogs         QuestLog[]
+  rewardLogs        RewardLog[]
+  passSubscriptions PassSubscription[]
+
+  @@map("users")
+}
+
+// BE2 소관: 성장(레벨업) 로직이 다루는 캐릭터 상태
+model Pizzly {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  level     Int      @default(1)
+  exp       Int      @default(0)
+  stage     Int      @default(1) // 성장 단계 번호, pizzly-lv{stage}.svg 와 매칭
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("pizzlies")
+}
+
+// BE2 소관: 추천 엔진이 매칭에 사용하는 퀘스트 마스터 데이터
+model Quest {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  category    QuestCategory
+  duration    QuestDurationMinutes
+  situations  Json // 적합 상황 목록 (앉아있음/서있음/이동 중/조용한 장소)
+  conditions  Json // 적합 컨디션 목록 (눈 피로/손목·손가락/목·어깨/휴식)
+  expReward   Int                  @default(0) @map("exp_reward")
+  isActive    Boolean              @default(true) @map("is_active")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  questLogs QuestLog[]
+
+  @@map("quests")
+}
+
+// BE1 소관: 퀘스트 완료 기록 저장 / BE2는 기록 조회 API에서 읽기 전용으로 사용
+model QuestLog {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  questId        String   @map("quest_id")
+  elapsedSeconds Int      @map("elapsed_seconds")
+  completedAt    DateTime @default(now()) @map("completed_at")
+
+  user      User       @relation(fields: [userId], references: [id])
+  quest     Quest      @relation(fields: [questId], references: [id])
+  rewardLog RewardLog?
+
+  @@index([userId, completedAt])
+  @@map("quest_logs")
+}
+
+// BE1 소관: 보상 로직 결과 저장
+model RewardLog {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  questLogId  String   @unique @map("quest_log_id")
+  rewardType  String   @map("reward_type") // 예: EXP, ITEM
+  rewardValue Json     @map("reward_value")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id])
+  questLog QuestLog @relation(fields: [questLogId], references: [id])
+
+  @@map("reward_logs")
+}
+
+// BE2 소관: 패스/프리미엄 결제 연동
+model PassSubscription {
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  planType   PassPlanType @map("plan_type")
+  startedAt  DateTime  @map("started_at")
+  expiresAt  DateTime? @map("expires_at")
+  paymentRef String?   @map("payment_ref") // 결제 연동 참조 ID
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("pass_subscriptions")
+}
