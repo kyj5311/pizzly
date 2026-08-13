@@ -57,5 +57,17 @@ export const REWARD_ERROR_CODES = {
   }
 } as const
 
+export const GROWTH_ERROR_CODES = {
+  GROWTH_001: {
+    code: 'GROWTH_001',
+    message: '캐릭터(피즐리) 정보를 찾을 수 없습니다.'
+  },
+  GROWTH_002: {
+    code: 'GROWTH_002',
+    message: '경험치 값이 유효하지 않습니다.'
+  }
+} as const
+
 export type QuestErrorCode = keyof typeof QUEST_ERROR_CODES
 export type RewardErrorCode = keyof typeof REWARD_ERROR_CODES
+export type GrowthErrorCode = keyof typeof GROWTH_ERROR_CODES
