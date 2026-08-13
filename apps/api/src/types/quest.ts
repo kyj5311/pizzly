@@ -15,6 +15,7 @@ export interface RecommendQuestInput {
 
 export interface RecommendedQuest {
   questId: string
+  questCode: string
   title: string
   category: QuestCategory
   duration: QuestDurationMinutes

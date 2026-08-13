@@ -29,6 +29,18 @@ enum PassPlanType {
   PREMIUM
 }
 
+enum QuestGuideType {
+  PIZZLY_SIGNATURE // 피즐리 시그니처
+  GENERAL // 일반 가이드
+  EITHER // 피즐리 시그니처 또는 일반
+}
+
+enum QuestDifficulty {
+  LOW // 하
+  MID // 중
+  HIGH // 상
+}
+
 // BE1 소관: 로그인/온보딩 저장
 model User {
   id            String   @id @default(uuid())
@@ -63,14 +75,22 @@ model Pizzly {
 }
 
 // BE2 소관: 추천 엔진이 매칭에 사용하는 퀘스트 마스터 데이터
+// 필드 구성은 PM이 전달한 "피즐리_BE2_추천로직_퀘스트_기준표.xlsx" > 필드_정의 시트 기준
+// condition(눈 피로/손목·손가락/목·어깨/휴식) 입력은 별도 필드 없이 category로 직접 매칭한다 (필드_정의 시트에 condition 전용 필드가 없음)
 model Quest {
   id          String               @id @default(uuid())
+  questCode   String               @unique @map("quest_code") // PM 기준표의 퀘스트 ID, 예: EYE_01_01
   title       String
-  description String?
   category    QuestCategory
   duration    QuestDurationMinutes
-  situations  Json // 적합 상황 목록 (앉아있음/서있음/이동 중/조용한 장소)
-  conditions  Json // 적합 컨디션 목록 (눈 피로/손목·손가락/목·어깨/휴식)
+  steps       Json // 수행 단계 배열(순서대로), 예: ["① 화면에서 시선 떼기", "② ..."]
+  repsSets    String?              @map("reps_sets") // 권장 횟수/세트, 예: "깜빡이기 10회 × 2세트"
+  posture     Json // 가능 자세 배열, 값: "앉아 있음" | "서 있음" | "이동 중"
+  environment String? // 권장 환경 자유 텍스트, 예: "조용한 장소 권장"
+  guideType   QuestGuideType       @map("guide_type")
+  difficulty  QuestDifficulty      @default(LOW)
+  caution     String? // 제외/주의 조건
+  note        String? // 비고
   expReward   Int                  @default(0) @map("exp_reward")
   isActive    Boolean              @default(true) @map("is_active")
   createdAt   DateTime             @default(now()) @map("created_at")

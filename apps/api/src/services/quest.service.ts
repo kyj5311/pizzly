@@ -1,5 +1,5 @@
 import { prisma } from '../utils/prisma'
-import type { RecommendQuestInput, RecommendedQuest } from '../types/quest'
+import type { QuestCondition, QuestSituation, RecommendQuestInput, RecommendedQuest } from '../types/quest'
 
 // docs/quest-recommendation-spec.md 3장(매칭 로직) 참고
 const MAX_RECOMMENDATIONS = 3
@@ -12,6 +12,29 @@ const DURATION_ENUM_MAP: Record<RecommendQuestInput['duration'], string> = {
   1: 'MIN_1',
   3: 'MIN_3',
   5: 'MIN_5'
+}
+
+// PM 기준표(필드_정의 시트)에는 condition 전용 필드가 없어 category로 직접 매핑
+const CONDITION_CATEGORY_MAP: Record<QuestCondition, string> = {
+  EYE_FATIGUE: 'EYE',
+  WRIST_FINGER: 'WRIST',
+  NECK_SHOULDER: 'NECK_SHOULDER',
+  REST: 'BREATH_REST'
+}
+
+const POSTURE_LABEL_MAP: Partial<Record<QuestSituation, string>> = {
+  SITTING: '앉아 있음',
+  STANDING: '서 있음',
+  MOVING: '이동 중'
+}
+
+function matchesSituation(quest: { posture: unknown; environment: string | null }, situation: QuestSituation): boolean {
+  if (situation === 'QUIET_PLACE') {
+    return quest.environment != null && quest.environment.includes('조용')
+  }
+  const postureLabel = POSTURE_LABEL_MAP[situation]
+  const posture = quest.posture as string[]
+  return postureLabel != null && posture.includes(postureLabel)
 }
 
 export async function recommendQuests(
@@ -29,8 +52,7 @@ export async function recommendQuests(
 
   const eligible = candidates.filter((quest) => {
     if (restrictions.includes(quest.category)) return false
-    const situations = quest.situations as string[]
-    return situations.includes(input.situation)
+    return matchesSituation(quest, input.situation)
   })
 
   if (eligible.length === 0) {
@@ -41,13 +63,13 @@ export async function recommendQuests(
 
   const scored = eligible.map((quest) => {
     let score = 0
-    const conditions = quest.conditions as string[]
-    if (conditions.includes(input.condition)) score += CONDITION_MATCH_SCORE
+    if (quest.category === CONDITION_CATEGORY_MAP[input.condition]) score += CONDITION_MATCH_SCORE
     if (interests.includes(quest.category)) score += INTEREST_MATCH_SCORE
     if (recentQuestIds.has(quest.id)) score += RECENT_COMPLETION_PENALTY
 
     return {
       questId: quest.id,
+      questCode: quest.questCode,
       title: quest.title,
       category: quest.category,
       duration: input.duration,
