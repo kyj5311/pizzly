@@ -16,8 +16,9 @@ interface RecommendQuestInput {
 type QuestCategory = 'EYE' | 'WRIST' | 'NECK_SHOULDER' | 'BREATH_REST'
 ```
 
-- `duration`/`situation`/`condition`은 필수, 매 추천 요청마다 사용자가 그 자리에서 선택하는 값
-- `interests`/`restrictions`는 로그인한 사용자의 온보딩 데이터에서 서버가 채워 넣음(요청 바디로 안 받고 `userId` 기준 조회)
+- `duration`/`situation`/`condition`은 필수, 매 추천 요청마다 사용자가 그 자리에서 선택하는 값 (QST-01 시간 → QST-02 상황 → QST-03 컨디션 순으로 선택, `condition`이 추천 직전 마지막으로 정하는 가장 구체적인 신호)
+- `restrictions`는 로그인한 사용자의 온보딩 데이터에서 서버가 채워 넣음(요청 바디로 안 받고 `userId` 기준 조회)
+- `interests`는 온보딩 데이터로 계속 저장은 하지만, 3장 알고리즘이 `condition`으로 카테고리를 확정하는 방식으로 바뀌면서 현재 추천 매칭에는 사용하지 않음 (다른 화면에서 활용 여지는 있음)
 
 ## 2. 출력
 
@@ -40,9 +41,9 @@ interface RecommendedQuest {
 - 공통 응답 포맷 준수: `{ success: true, data: { quests: [...] }, error: null }`
 - 조건에 맞는 퀘스트가 하나도 없으면 `QUEST_001` 에러 반환 (빈 배열로 200을 주지 않음)
 
-## 3. 매칭 로직 (규칙 기반)
+## 3. 매칭 로직 (규칙 기반, category-lock + duration 폴백)
 
-PM 기준표에는 `condition` 전용 필드가 없다. `input.condition`(눈 피로/손목·손가락/목·어깨/휴식)은 그대로 `Quest.category`(눈 건강/손목·손가락/목·어깨/호흡·휴식)로 1:1 매핑해서 사용한다.
+`input.condition`으로 **카테고리를 먼저 하나로 고정**한다. 다른 카테고리는 아예 후보에 들어오지 않는다 (PM 기준표에 `condition` 전용 필드가 없고, `input.condition`이 `Quest.category`와 1:1 대응하기 때문).
 
 ```ts
 const CONDITION_CATEGORY_MAP: Record<QuestCondition, QuestCategory> = {
@@ -65,17 +66,14 @@ const POSTURE_LABEL_MAP: Record<'SITTING' | 'STANDING' | 'MOVING', string> = {
 }
 ```
 
-1. **필수 필터**: `Quest.isActive === true` AND `Quest.duration === input.duration`
-2. **상황 필터**: `input.situation === 'QUIET_PLACE'`면 `Quest.environment`에 "조용" 포함 여부로, 그 외에는 `Quest.posture`에 매핑된 자세 라벨 포함 여부로 필터링
-3. **제한사항 제외**: `input.restrictions`에 속한 `category`는 후보에서 제외
-4. **스코어링** (남은 후보 대상)
-   - `Quest.category === CONDITION_CATEGORY_MAP[input.condition]`이면 `+3`
-   - `Quest.category`가 `input.interests`에 포함되면 `+2`
-   - 최근 24시간 내 같은 사용자가 완료한 퀘스트면 `-1` (다양성 확보, 완전 제외는 아님)
-5. **정렬 및 우선순위 부여**: `matchScore` 내림차순 정렬 → 상위 3개까지 `priority` 1, 2, 3 부여
-6. **결과 없음 처리**: 필터링 후 후보가 0개면 2번(상황 필터)까지만 적용한 완화 조건으로 1회 재시도 → 그래도 없으면 `QUEST_001`
+1. **카테고리 고정**: `targetCategory = CONDITION_CATEGORY_MAP[input.condition]`. `targetCategory`가 `input.restrictions`에 속하면 바로 빈 배열 반환 (→ `QUEST_001`)
+2. **카테고리 내 후보 조회**: `Quest.isActive === true` AND `Quest.category === targetCategory`인 퀘스트만 조회 (duration 무관하게 해당 카테고리 전체)
+3. **duration tier 폴백 순서 결정**: `input.duration`부터 시작해 그보다 짧은 duration으로 내려가는 목록. 예) 요청 5분 → `[5, 3, 1]`, 요청 3분 → `[3, 1]`, 요청 1분 → `[1]`
+4. **tier별 상황 필터 + 다양성 정렬**: 각 tier에서 `posture`/`environment`가 `input.situation`과 맞는 퀘스트만 남기고, 최근 24시간 내 같은 사용자가 완료한 퀘스트는 뒤로 밀어서 정렬(완전 제외는 아님 — 후보가 그것뿐이면 그래도 추천)
+5. **우선순위 채우기**: tier를 앞에서부터(정확한 duration → 한 단계 짧은 duration → …) 순서대로 순회하며 최대 3개(`MAX_RECOMMENDATIONS`)까지 `priority` 1, 2, 3 부여. `matchScore`는 QA용 디버그 값(정확한 duration일수록, 최근 미완료일수록 높음)
+6. **결과 없음 처리**: 모든 tier를 다 돌아도 후보가 0개면 `QUEST_001`
 
-> ⚠️ **검증 중 발견한 이슈**: PM 엑셀의 "추천_로직_예시" 시트 6개 케이스를 위 로직에 대입하면 **1순위는 6개 전부 일치**하지만, **2순위는 대부분 불일치**한다. PM 예시의 2순위는 "동일 카테고리의 한 단계 더 짧은 시간(예: 3분 요청 시 2순위로 1분짜리)" 패턴인데, 지금 로직은 `duration`을 정확히 일치하는 후보만 필터링하기 때문에 애초에 다른 duration의 퀘스트가 후보에 들어오지 않는다. 이 부분은 알고리즘을 category 우선 + duration 단계별 폴백 방식으로 다시 설계해야 할 수 있어 사용자 확인 후 반영 예정 (아래 5장 참고).
+> 참고: `situation === 'MOVING'`(이동 중)을 지원하는 퀘스트가 현재 시드 12개 중 하나도 없어서, 지금은 이 조합으로 요청하면 항상 `QUEST_001`이 된다. 콘텐츠 갭이며 PM에게 알릴 필요 있음.
 
 ```
 // LLM 보강 여지:
@@ -93,13 +91,17 @@ const POSTURE_LABEL_MAP: Record<'SITTING' | 'STANDING' | 'MOVING', string> = {
 
 ## 5. PM 예시 케이스 검증 (추천_로직_예시 시트)
 
-| # | 입력(시간/상황/컨디션) | PM 기대 1순위 | PM 기대 2순위 | 현재 로직 1순위 | 현재 로직 2순위 |
-|---|---|---|---|---|---|
-| 1 | 1분 / 앉아있음 / 눈 건강 | EYE_01_01 | - | ✅ EYE_01_01 | ❌ (duration 불일치 후보 없어 다른 카테고리로 채워짐) |
-| 2 | 3분 / 앉아있음 / 손목·손가락 | WRIST_03_01 | WRIST_01_01(1분) | ✅ WRIST_03_01 | ❌ (1분 퀘스트는 애초에 후보 아님) |
-| 3 | 5분 / 서있음 / 목·어깨 | NECK_05_01 | NECK_03_01(3분) | ✅ NECK_05_01 | ❌ |
-| 4 | 3분 / 조용한 장소 / 호흡·휴식 | BREATH_03_01 | BREATH_01_01(1분) | ✅ BREATH_03_01 | ❌ |
-| 5 | 5분 / 앉아있음 / 눈 건강 | EYE_05_01 | EYE_03_01(3분) | ✅ EYE_05_01 | ❌ |
-| 6 | 1분 / 서있음 / 목·어깨 | NECK_01_01 | - | ✅ NECK_01_01 | ❌ (duration 불일치 후보 없어 다른 카테고리로 채워짐) |
+category-lock + duration 폴백 방식으로 재설계 후 재검증한 결과.
 
-**결론**: 1순위(6/6) 전부 일치 — `condition→category` 매핑과 `situation→posture/environment` 매핑은 올바르게 작동. 2순위(0/6) 전부 불일치 — PM은 "동일 카테고리·더 짧은 duration"을 2순위로 기대하지만 현재 로직은 duration을 1차 필수 필터로 걸어버려서 후보에 들어오지 못함. 알고리즘 리비전 필요 여부는 사용자 확인 후 진행.
+| # | 입력(시간/상황/컨디션) | PM 기대 1순위 | PM 기대 2순위 | 현재 로직 결과 |
+|---|---|---|---|---|
+| 1 | 1분 / 앉아있음 / 눈 건강 | EYE_01_01 | - | ✅ [EYE_01_01] (1분보다 짧은 tier가 없어 1개만 반환) |
+| 2 | 3분 / 앉아있음 / 손목·손가락 | WRIST_03_01 | WRIST_01_01(1분) | ✅ [WRIST_03_01, WRIST_01_01] |
+| 3 | 5분 / 서있음 / 목·어깨 | NECK_05_01 | NECK_03_01(3분) | ✅ [NECK_05_01, NECK_03_01, NECK_01_01] — PM 표엔 2칸뿐이라 안 보이지만 1분 tier까지 남은 자리(3순위)를 채움. 1·2순위는 일치, 상충 아님 |
+| 4 | 3분 / 조용한 장소 / 호흡·휴식 | BREATH_03_01 | BREATH_01_01(1분) | ✅ [BREATH_03_01, BREATH_01_01] |
+| 5 | 5분 / 앉아있음 / 눈 건강 | EYE_05_01 | EYE_03_01(3분) | ✅ [EYE_05_01, EYE_03_01, EYE_01_01] — 3번과 동일하게 3순위 추가 |
+| 6 | 1분 / 서있음 / 목·어깨 | NECK_01_01 | - | ✅ [NECK_01_01] |
+
+**결론**: 6/6 케이스 모두 PM이 명시한 1·2순위와 일치. 3·5번은 `MAX_RECOMMENDATIONS = 3` 설계상 자연스럽게 3순위까지 채워지는데, PM 표는 컬럼이 2개뿐이라 안 보였을 뿐 어긋나는 내용은 아님 — 3순위 노출 여부는 FE1과 UI 협의 필요.
+
+(참고: `npm install` 전이라 이 표는 실제 코드 실행이 아니라 로직을 손으로 대입해 확인한 결과다. `npm install` 이후 자동화된 테스트로 다시 검증 권장.)
