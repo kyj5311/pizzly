@@ -30,15 +30,9 @@ export async function recommend(
 
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    const interests = (user?.interests as string[] | null) ?? []
     const restrictions = (user?.restrictions as string[] | null) ?? []
 
-    const quests = await recommendQuests(
-      userId,
-      { duration, situation, condition },
-      interests,
-      restrictions
-    )
+    const quests = await recommendQuests(userId, { duration, situation, condition }, restrictions)
 
     if (quests.length === 0) {
       sendError(res, 400, QUEST_ERROR_CODES.QUEST_001)
