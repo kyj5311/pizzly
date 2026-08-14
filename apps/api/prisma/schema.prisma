@@ -122,7 +122,7 @@ model RewardLog {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
   questLogId  String   @unique @map("quest_log_id")
-  rewardType  String   @map("reward_type") // 예: EXP, ITEM
+  rewardType  String   @map("reward_type") // 'EXP' | 'BOX' | 'TOKEN' 권장 (REC-03/04 기록 조회가 이 값으로 필터링함, BE1과 확정 필요)
   rewardValue Json     @map("reward_value")
   createdAt   DateTime @default(now()) @map("created_at")
 
