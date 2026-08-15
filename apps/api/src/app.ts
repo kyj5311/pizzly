@@ -7,6 +7,12 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
+
+// Render 등 배포 환경의 헬스체크용. 공통 응답 포맷 대상 아님(도메인 API가 아니라 인프라 확인용).
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' })
+})
+
 app.use('/api', routes)
 
 app.use((_req: Request, res: Response) => {
