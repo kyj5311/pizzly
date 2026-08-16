@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   디자인 토큰 (Tailwind v4 @theme)
+   ※ 임시값입니다. DS 시안 도착 후 FE2가 Figma Variables 기준으로 확정합니다.
+   ※ 컴포넌트에서 hex 직접 사용 금지 — bg-primary 처럼 의미 이름만 사용.
+   ============================================================ */
+@theme {
+  --color-primary: #7c4dff;
+  --color-primary-strong: #5e35d6;
+  --color-accent: #4caf50;
+  --color-surface: #ffffff;
+  --color-page: #faf7ff;
+  --color-line: #e8e2f5;
+  --color-ink: #2a2333;
+  --color-ink-muted: #8a8195;
+  --color-danger: #e05252;
+
+  --radius-card: 20px;
+  --radius-button: 16px;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-page);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary-strong);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
