@@ -23,7 +23,7 @@ function applyGrowth(userId: string, expGained: number): Promise<ApplyGrowthResu
 interface ApplyGrowthResult {
   level: number
   exp: number // 누적 경험치 총합 (레벨 내 잔여치가 아님)
-  stage: number // 1~4, 성장 단계(외형)
+  growthStage: number // 1~4, 성장 단계(외형). 필드명은 BE1 스키마·FE1 타입과 통일함
   leveledUp: boolean // 이번 호출로 레벨이 올랐는지
   stageUp: boolean // 이번 호출로 성장 단계가 바뀌었는지 (GRW-03 축하 화면 트리거 조건)
 }
@@ -69,7 +69,7 @@ FE2의 GRW-03(성장 축하 화면)이 "레벨업/단계업 했는지"를 알아
     "growth": {
       "level": 31,
       "exp": 3000,
-      "stage": 2,
+      "growthStage": 2,
       "leveledUp": true,
       "stageUp": true
     }

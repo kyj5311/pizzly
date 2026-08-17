@@ -46,12 +46,11 @@ model User {
   id            String   @id @default(uuid())
   testAccountId String   @unique @map("test_account_id")
   nickname      String?
-  interests     Json? // 온보딩 관심영역 (QuestCategory[])
-  restrictions  Json? // 온보딩 제한사항
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   pizzly            Pizzly?
+  onboarding        Onboarding?
   questLogs         QuestLog[]
   rewardLogs        RewardLog[]
   passSubscriptions PassSubscription[]
@@ -59,15 +58,30 @@ model User {
   @@map("users")
 }
 
+// BE1 소관: 온보딩(ONB-01/02) 저장. BE1 스키마 리뷰에서 나온 분리안 반영 — 기존엔 User에 직접 있었음
+model Onboarding {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  interests    Json? // 온보딩 관심영역 (QuestCategory[])
+  restrictions Json? // 온보딩 제한사항, 추천 로직의 restrictions 필터로 쓰임
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("onboardings")
+}
+
 // BE2 소관: 성장(레벨업) 로직이 다루는 캐릭터 상태
 model Pizzly {
-  id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
-  level     Int      @default(1)
-  exp       Int      @default(0)
-  stage     Int      @default(1) // 성장 단계 번호, pizzly-lv{stage}.svg 와 매칭
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  level       Int      @default(1)
+  exp         Int      @default(0)
+  growthStage Int      @default(1) @map("growth_stage") // 성장 단계 번호, pizzly-lv{growthStage}.svg 와 매칭
+  token       Int      @default(0) // 현재 토큰 잔액. 이력은 RewardLog(rewardType='TOKEN')에 별도 기록
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id])
 

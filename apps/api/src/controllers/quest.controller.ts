@@ -29,8 +29,8 @@ export async function recommend(
   const userId = req.userId as string
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } })
-    const restrictions = (user?.restrictions as string[] | null) ?? []
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { onboarding: true } })
+    const restrictions = (user?.onboarding?.restrictions as string[] | null) ?? []
 
     const quests = await recommendQuests(userId, { duration, situation, condition }, restrictions)
 
