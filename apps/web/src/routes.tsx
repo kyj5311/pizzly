@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 
-import HomePlaceholderPage from './pages/HomePlaceholderPage';
 import LoginPage from './pages/auth/LoginPage';
 import InterestsPage from './pages/onboarding/InterestsPage';
 import RestrictionsPage from './pages/onboarding/RestrictionsPage';
@@ -15,9 +14,21 @@ import QuestCompletePage from './pages/quest/QuestCompletePage';
 import { OnboardingProvider } from './store/onboarding-store';
 import { QuestFlowProvider } from './store/quest-flow-store';
 
+import HomePage from './features/home/pages/HomePage';
+import GrowthPage from './features/growth/pages/GrowthPage';
+import ShopPage from './features/shop/pages/ShopPage';
+import PassPage from './features/pass/pages/PassPage';
+import RecordPage from './features/record/pages/RecordPage';
+import QuestListPage from './features/quest-list/pages/QuestListPage';
+
 export const router = createBrowserRouter([
-  // --- FE2 영역 (임시 자리) ---
-  { path: '/', element: <HomePlaceholderPage /> },
+  // --- FE2 영역 ---
+  { path: '/', element: <HomePage /> },
+  { path: '/growth', element: <GrowthPage /> },
+  { path: '/shop', element: <ShopPage /> },
+  { path: '/pass', element: <PassPage /> },
+  { path: '/record', element: <RecordPage /> },
+  { path: '/quests', element: <QuestListPage /> }, // 19번 화면(퀘스트 목록)
 
   // --- FE1 영역 ---
   { path: '/login', element: <LoginPage /> }, // LOG-01
