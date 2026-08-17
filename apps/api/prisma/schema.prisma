@@ -65,7 +65,7 @@ model Pizzly {
   userId    String   @unique @map("user_id")
   level     Int      @default(1)
   exp       Int      @default(0)
-  stage     Int      @default(1) // 성장 단계 번호, pizzly-lv{stage}.svg 와 매칭
+  growthStage Int    @default(1) @map("growth_stage") // 성장 단계 번호, pizzly-lv{growthStage}.svg 와 매칭
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
