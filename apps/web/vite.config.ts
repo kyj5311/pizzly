@@ -1,10 +1,28 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
-// PWA 플러그인(vite-plugin-pwa) 추가는 FE2 담당 영역입니다.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      // public/manifest.json을 그대로 서빙 — 플러그인이 별도로 생성하지 않음
+      manifest: false,
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // API 응답은 캐싱 제외, 항상 최신 데이터 (CLAUDE.md PWA 규칙)
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+    }),
+  ],
   server: {
     proxy: {
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
