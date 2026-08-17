@@ -9,8 +9,8 @@ interface RecommendQuestInput {
   duration: 1 | 3 | 5 // 분 단위, 온보딩/홈에서 사용자가 고른 값
   situation: 'SITTING' | 'STANDING' | 'MOVING' | 'QUIET_PLACE'
   condition: 'EYE_FATIGUE' | 'WRIST_FINGER' | 'NECK_SHOULDER' | 'REST'
-  interests?: QuestCategory[] // 온보딩에서 저장한 관심영역 (User.interests)
-  restrictions?: QuestCategory[] // 온보딩에서 저장한 제한사항 (User.restrictions), 추천에서 제외
+  interests?: QuestCategory[] // 온보딩에서 저장한 관심영역 (Onboarding.interests)
+  restrictions?: QuestCategory[] // 온보딩에서 저장한 제한사항 (Onboarding.restrictions), 추천에서 제외
 }
 
 type QuestCategory = 'EYE' | 'WRIST' | 'NECK_SHOULDER' | 'BREATH_REST'
