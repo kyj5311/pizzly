@@ -1,0 +1,39 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "mysql" url = env("DATABASE_URL") }
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  tokenBalance Int       @default(0)
+  onboarding   Onboarding?
+  rewardLogs   RewardLog[]
+  questLogs    QuestLog[]
+}
+
+model Onboarding {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+  stage  String // growthStage 대신 stage로 통일
+}
+
+model Quest {
+  id        String     @id @default(uuid())
+  title     String
+  questLogs QuestLog[]
+}
+
+model RewardLog {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  amount Int
+}
+
+model QuestLog {
+  id      String @id @default(uuid())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  quest   Quest  @relation(fields: [questId], references: [id])
+  questId String
+}
