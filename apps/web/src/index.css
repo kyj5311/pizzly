@@ -1,3 +1,89 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-/* DS 디자인 토큰 도착 시 @theme { --color-*, --font-*, --spacing-* } 블록 추가 예정 (CLAUDE.md 디자인 시스템 섹션 참고) */
+/* ============================================================
+   디자인 토큰 (Tailwind v4 @theme)
+   FE2가 pizzly_images 에셋 기준으로 확정한 값(v2). DS 정식 시안 도착 시 값만 교체.
+   컴포넌트에서 hex 직접 사용 금지 — bg-primary 처럼 의미 이름만 사용.
+   FE1/FE2 컴포넌트가 서로 다른 토큰 이름(ink/page/line vs text/bg/border)을 써서
+   당장은 두 세트를 동일 값으로 같이 정의해둠 — 나중에 하나로 통일 필요.
+   ============================================================ */
+@theme {
+  --color-primary: #8b5cf6;
+  --color-primary-strong: #7c3aed;
+  --color-accent: #3da35d;
+  --color-accent-strong: #2f8a4c;
+  --color-gold: #f5a623;
+  --color-gold-strong: #d98c12;
+  --color-surface: #ffffff;
+  --color-danger: #ef4444;
+
+  --color-bg: #f7f5fc;
+  --color-page: #f7f5fc;
+
+  --color-border: #eae5f7;
+  --color-line: #eae5f7;
+
+  --color-text: #241b3a;
+  --color-ink: #241b3a;
+
+  --color-muted: #8e85a3;
+  --color-ink-muted: #8e85a3;
+
+  --radius-card: 16px;
+  --radius-button: 12px;
+
+  --shadow-card: 0 2px 12px rgba(36, 27, 58, 0.07);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary-strong);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* PizzlyCharacter 의사(pseudo) 3D 연출 — 실제 GLB 모델 도입 전까지의 임시 효과 (FE2) */
+@keyframes pizzly-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes pizzly-shadow-pulse {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.8);
+    opacity: 0.6;
+  }
+}
+.pizzly-float {
+  animation: pizzly-float 3.2s ease-in-out infinite;
+}
+.pizzly-shadow {
+  animation: pizzly-shadow-pulse 3.2s ease-in-out infinite;
+}

@@ -1,0 +1,21 @@
+import type { ReactNode } from 'react';
+
+interface AppScreenProps {
+  title?: string;
+  /** 온보딩·퀘스트처럼 단계가 있는 화면에서 상단 진행 표시에 사용 */
+  header?: ReactNode;
+  footer?: ReactNode;
+  children?: ReactNode;
+}
+
+/** 모바일 기준 공통 화면 껍데기. 페이지마다 레이아웃을 따로 짜지 않기 위한 것. */
+export function AppScreen({ title, header, footer, children }: AppScreenProps) {
+  return (
+    <div className="mx-auto flex h-full w-full max-w-md flex-col px-5 pb-6 pt-8">
+      {header}
+      {title && <h1 className="mb-4 text-xl font-bold">{title}</h1>}
+      <main className="flex-1">{children}</main>
+      {footer && <div className="pt-4">{footer}</div>}
+    </div>
+  );
+}
