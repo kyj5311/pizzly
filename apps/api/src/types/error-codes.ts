@@ -68,6 +68,22 @@ export const GROWTH_ERROR_CODES = {
   }
 } as const
 
+export const AUTH_ERROR_CODES = {
+  AUTH_001: {
+    code: 'AUTH_001',
+    message: '인증에 실패했습니다.'
+  }
+} as const
+
+export const ONB_ERROR_CODES = {
+  ONB_001: {
+    code: 'ONB_001',
+    message: '온보딩 정보 저장에 실패했습니다.'
+  }
+} as const
+
 export type QuestErrorCode = keyof typeof QUEST_ERROR_CODES
 export type RewardErrorCode = keyof typeof REWARD_ERROR_CODES
 export type GrowthErrorCode = keyof typeof GROWTH_ERROR_CODES
+export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES
+export type OnbErrorCode = keyof typeof ONB_ERROR_CODES
