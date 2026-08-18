@@ -4,8 +4,6 @@
    디자인 토큰 (Tailwind v4 @theme)
    FE2가 pizzly_images 에셋 기준으로 확정한 값(v2). DS 정식 시안 도착 시 값만 교체.
    컴포넌트에서 hex 직접 사용 금지 — bg-primary 처럼 의미 이름만 사용.
-   FE1/FE2 컴포넌트가 서로 다른 토큰 이름(ink/page/line vs text/bg/border)을 써서
-   당장은 두 세트를 동일 값으로 같이 정의해둠 — 나중에 하나로 통일 필요.
    ============================================================ */
 @theme {
   --color-primary: #8b5cf6;
@@ -18,16 +16,9 @@
   --color-danger: #ef4444;
 
   --color-bg: #f7f5fc;
-  --color-page: #f7f5fc;
-
   --color-border: #eae5f7;
-  --color-line: #eae5f7;
-
   --color-text: #241b3a;
-  --color-ink: #241b3a;
-
   --color-muted: #8e85a3;
-  --color-ink-muted: #8e85a3;
 
   --radius-card: 16px;
   --radius-button: 12px;

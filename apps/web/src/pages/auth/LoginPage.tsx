@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
+import { AppScreen, Button } from '../../shared/ui';
 import { login } from '../../api/auth-api';
 
 /**

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw } from 'lucide-react';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
+import { AppScreen, Button, Card } from '../../shared/ui';
 import { recommendQuest } from '../../api/quest-api';
 import { useQuestFlow } from '../../store/quest-flow-store';
 import type { Quest, QuestContext } from '../../types/quest';
@@ -94,7 +92,7 @@ export default function QuestRecommendPage() {
     >
       <Card>
         <h2 className="text-xl font-bold">{quest.title}</h2>
-        <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-muted">
+        <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted">
           <Clock className="size-4" aria-hidden />
           약 {Math.round(quest.durationSec / 60)}분
           {quest.repeatCount ? ` · ${quest.repeatCount}회` : ''}

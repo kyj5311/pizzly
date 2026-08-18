@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
+import { AppScreen, Button, Card } from '../../shared/ui';
 import { useQuestFlow } from '../../store/quest-flow-store';
 
 /** [QST-05] 활동 가이드 — DS 일러스트·모션 도착 전까지 텍스트 안내로 진행 */
@@ -27,7 +25,7 @@ export default function QuestGuidePage() {
       }
     >
       {/* DS 에셋 자리: SIGNATURE 는 피즐리 동작 일러스트, GENERAL 은 일반 가이드 이미지 */}
-      <Card className="mb-6 flex h-44 items-center justify-center text-ink-muted">
+      <Card className="mb-6 flex h-44 items-center justify-center text-muted">
         {quest.guideType === 'SIGNATURE' ? '피즐리 시그니처 동작' : '동작 가이드'}
       </Card>
 
@@ -43,7 +41,7 @@ export default function QuestGuidePage() {
       </ol>
 
       {quest.repeatCount && (
-        <p className="mt-6 text-sm text-ink-muted">총 {quest.repeatCount}회 반복해요.</p>
+        <p className="mt-6 text-sm text-muted">총 {quest.repeatCount}회 반복해요.</p>
       )}
     </AppScreen>
   );

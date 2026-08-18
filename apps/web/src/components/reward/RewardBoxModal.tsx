@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Gift } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
+import { Button, Modal } from '../../shared/ui';
 
 interface RewardBoxModalProps {
   open: boolean;
@@ -33,7 +32,7 @@ export function RewardBoxModal({ open, bonusExp, onClose }: RewardBoxModalProps)
         </>
       ) : (
         <>
-          <p className="mb-5 text-center text-ink-muted">열어보면 추가 경험치를 받을 수 있어요.</p>
+          <p className="mb-5 text-center text-muted">열어보면 추가 경험치를 받을 수 있어요.</p>
           <Button fullWidth onClick={() => setOpened(true)}>
             상자 열기
           </Button>

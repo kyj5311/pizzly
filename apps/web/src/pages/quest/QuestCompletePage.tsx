@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PartyPopper } from 'lucide-react';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
+import { AppScreen, Button, Card } from '../../shared/ui';
 import { RewardBoxModal } from '../../components/reward/RewardBoxModal';
 import { completeQuest } from '../../api/quest-api';
 import { useQuestFlow } from '../../store/quest-flow-store';
@@ -56,7 +54,7 @@ export default function QuestCompletePage() {
         <p className="text-lg font-bold">
           {result ? `경험치 +${result.reward.exp}` : '기록을 저장하는 중이에요'}
         </p>
-        {result && <p className="text-sm text-ink-muted">토큰 +{result.reward.token}</p>}
+        {result && <p className="text-sm text-muted">토큰 +{result.reward.token}</p>}
       </Card>
 
       <RewardBoxModal open={boxOpen} bonusExp={15} onClose={() => setBoxOpen(false)} />

@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
+import { AppScreen, Button, Card } from '../../shared/ui';
 import { StepIndicator } from '../../components/ui/StepIndicator';
 import { saveOnboarding } from '../../api/auth-api';
 import { useOnboarding } from '../../store/onboarding-store';
@@ -42,7 +40,7 @@ export default function CreatePizzlyPage() {
       }
     >
       {/* DS 에셋 자리: 아기 곰 피즐리 일러스트 (pizzly-lv1.svg) */}
-      <Card className="flex h-60 items-center justify-center text-ink-muted">
+      <Card className="flex h-60 items-center justify-center text-muted">
         피즐리 일러스트 자리
       </Card>
     </AppScreen>

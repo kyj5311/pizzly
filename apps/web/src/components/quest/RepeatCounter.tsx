@@ -1,6 +1,5 @@
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { ProgressBar } from '../ui/ProgressBar';
+import { Button, ProgressBar } from '../../shared/ui';
 
 interface RepeatCounterProps {
   count: number;
@@ -15,7 +14,7 @@ export function RepeatCounter({ count, total, onIncrease, onDecrease }: RepeatCo
     <div className="flex flex-col items-center gap-6 py-8">
       <p className="text-6xl font-bold tabular-nums">
         {count}
-        <span className="text-2xl text-ink-muted"> / {total}</span>
+        <span className="text-2xl text-muted"> / {total}</span>
       </p>
       <div className="w-full">
         <ProgressBar value={total > 0 ? count / total : 0} label="진행률" />

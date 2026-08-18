@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { SelectableCard } from '../../components/ui/SelectableCard';
+import { AppScreen, SelectableCard } from '../../shared/ui';
 import { StepIndicator } from '../../components/ui/StepIndicator';
 import { useQuestFlow } from '../../store/quest-flow-store';
 import type { QuestDuration } from '../../types/quest';

@@ -1,5 +1,13 @@
 import { prisma } from '../utils/prisma'
-import type { QuestCategory, QuestCondition, QuestDurationMinutes, QuestSituation, RecommendedQuest, RecommendQuestInput } from '../types/quest'
+import type {
+  QuestCategory,
+  QuestCondition,
+  QuestDurationMinutes,
+  QuestSituation,
+  RecommendedQuest,
+  RecommendQuestInput,
+  Restriction
+} from '../types/quest'
 
 // docs/quest-recommendation-spec.md 3장(매칭 로직) 참고
 // condition으로 카테고리를 먼저 고정하고(다른 카테고리는 후보에서 아예 제외), 그 안에서 duration을 정확히 맞춘 것을
@@ -23,10 +31,13 @@ const CONDITION_CATEGORY_MAP: Record<QuestCondition, QuestCategory> = {
   REST: 'BREATH_REST'
 }
 
+// 현재 36개 퀘스트 전부 posture가 "앉아 있음"/"서 있음" 조합뿐이라 "이동 중" 태그가 달린 퀘스트가 하나도 없음
+// (PM 기준표에도 이동 중 전용 퀘스트가 없음). situation=MOVING을 그대로 매칭하면 항상 추천이 0건이 되므로,
+// 이동 중에는 앉아서 하는 동작이 불가능하다는 점에서 STANDING과 동일한 posture로 매칭한다.
 const POSTURE_LABEL_MAP: Partial<Record<QuestSituation, string>> = {
   SITTING: '앉아 있음',
   STANDING: '서 있음',
-  MOVING: '이동 중'
+  MOVING: '서 있음'
 }
 
 const DURATION_TIERS: QuestDurationMinutes[] = [1, 3, 5]
@@ -45,6 +56,20 @@ function matchesSituation(quest: { posture: unknown; environment: string | null 
   return postureLabel != null && posture.includes(postureLabel)
 }
 
+// ONB-02 활동 제한사항 필터. restrictions는 category 코드가 아니라 활동 제한 코드(NO_STANDING 등)라서
+// category 전체를 걷어내는 대신 퀘스트별로 실제 수행 가능 여부를 판정한다.
+// NO_ARM_RAISE/NO_SOUND/NO_FLOOR는 Quest 스키마에 태깅된 필드가 없어 아직 판정 불가 — 통과시킨다.
+// (posture/caution 필드에 관련 데이터가 생기면 이 함수만 확장하면 됨)
+const NO_STANDING: Restriction = 'NO_STANDING'
+
+function isQuestAllowed(quest: { posture: unknown }, restrictions: string[]): boolean {
+  if (restrictions.includes(NO_STANDING)) {
+    const posture = quest.posture as string[]
+    if (!posture.includes('앉아 있음')) return false
+  }
+  return true
+}
+
 export async function recommendQuests(
   userId: string,
   input: RecommendQuestInput,
@@ -52,13 +77,11 @@ export async function recommendQuests(
 ): Promise<RecommendedQuest[]> {
   const targetCategory = CONDITION_CATEGORY_MAP[input.condition]
 
-  if (restrictions.includes(targetCategory)) {
-    return []
-  }
-
-  const categoryQuests = await prisma.quest.findMany({
-    where: { isActive: true, category: targetCategory }
-  })
+  const categoryQuests = (
+    await prisma.quest.findMany({
+      where: { isActive: true, category: targetCategory }
+    })
+  ).filter((quest) => isQuestAllowed(quest, restrictions))
 
   const recentQuestIds = await getRecentlyCompletedQuestIds(userId)
   const tiers = fallbackDurationTiers(input.duration)
