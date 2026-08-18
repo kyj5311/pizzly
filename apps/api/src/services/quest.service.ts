@@ -100,7 +100,7 @@ async function getRecentlyCompletedQuestIds(userId: string): Promise<Set<string>
 }
 
 // FE2 퀘스트 목록(19번 화면, 둘러보기 카탈로그)용. FE1의 QST-04 추천 흐름과는 별개.
-// FE2의 QuestListArea는 BREATH_REST 대신 REST를 쓰고, "보관함(saved)" 기능은 아직 서버에 없어 항상 false.
+// FE2의 QuestListArea는 BREATH_REST 대신 REST를 쓴다.
 export interface QuestListItem {
   id: string
   title: string
@@ -123,11 +123,16 @@ const DURATION_ENUM_TO_MIN: Record<string, number> = {
   MIN_5: 5
 }
 
-export async function listQuests(): Promise<QuestListItem[]> {
-  const quests = await prisma.quest.findMany({
-    where: { isActive: true },
-    orderBy: [{ category: 'asc' }, { duration: 'asc' }]
-  })
+export async function listQuests(userId: string): Promise<QuestListItem[]> {
+  const [quests, bookmarks] = await Promise.all([
+    prisma.quest.findMany({
+      where: { isActive: true },
+      orderBy: [{ category: 'asc' }, { duration: 'asc' }]
+    }),
+    prisma.questBookmark.findMany({ where: { userId }, select: { questId: true } })
+  ])
+
+  const savedIds = new Set(bookmarks.map((bookmark) => bookmark.questId))
 
   return quests.map((quest) => ({
     id: quest.id,
@@ -135,6 +140,26 @@ export async function listQuests(): Promise<QuestListItem[]> {
     area: CATEGORY_TO_AREA[quest.category] ?? 'REST',
     durationMin: DURATION_ENUM_TO_MIN[quest.duration] ?? 1,
     detail: quest.environment ?? quest.note ?? '',
-    saved: false
+    saved: savedIds.has(quest.id)
   }))
+}
+
+export type SetQuestBookmarkError = 'NOT_FOUND'
+
+// 보관함(♡) 토글. 존재 여부만 저장하는 단순 구조라 add/remove 둘 다 멱등하게 처리한다.
+export async function setQuestBookmark(userId: string, questId: string, saved: boolean): Promise<SetQuestBookmarkError | null> {
+  const quest = await prisma.quest.findUnique({ where: { id: questId } })
+  if (!quest) return 'NOT_FOUND'
+
+  if (saved) {
+    await prisma.questBookmark.upsert({
+      where: { userId_questId: { userId, questId } },
+      create: { userId, questId },
+      update: {}
+    })
+  } else {
+    await prisma.questBookmark.deleteMany({ where: { userId, questId } })
+  }
+
+  return null
 }

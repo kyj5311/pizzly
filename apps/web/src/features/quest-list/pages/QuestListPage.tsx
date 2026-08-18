@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AppScreen, BackHomeButton, Card } from '../../../shared/ui';
 import { cn } from '../../../shared/lib/cn';
-import { getQuestList } from '../api/questListApi';
+import { getQuestList, setQuestSaved } from '../api/questListApi';
 import type { QuestListArea, QuestListItem, QuestListTab } from '../types';
 
 const TABS: { key: QuestListTab; label: string }[] = [
@@ -29,7 +29,11 @@ export default function QuestListPage() {
   }, []);
 
   const toggleSaved = (id: string) => {
-    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item)));
+    const next = !items.find((item) => item.id === id)?.saved;
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, saved: next } : item)));
+    void setQuestSaved(id, next).catch(() => {
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, saved: !next } : item)));
+    });
   };
 
   return (
