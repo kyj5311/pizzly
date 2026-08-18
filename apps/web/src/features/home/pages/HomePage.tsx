@@ -132,6 +132,14 @@ export default function HomePage() {
             </div>
           </Card>
         </div>
+
+        <Link
+          to="/record"
+          className="mt-3 flex items-center justify-between rounded-card border border-border bg-surface px-4 py-3 text-sm font-semibold active:bg-bg"
+        >
+          전체 기록 보기
+          <span aria-hidden>→</span>
+        </Link>
       </div>
 
       {/* 남는 세로 공간은 맨 아래로 몰아서, 위쪽 요소들은 서로 가깝게 붙어 있도록 한다 */}
