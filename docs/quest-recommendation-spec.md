@@ -73,7 +73,7 @@ const POSTURE_LABEL_MAP: Record<'SITTING' | 'STANDING' | 'MOVING', string> = {
 5. **우선순위 채우기**: tier를 앞에서부터(정확한 duration → 한 단계 짧은 duration → …) 순서대로 순회하며 최대 3개(`MAX_RECOMMENDATIONS`)까지 `priority` 1, 2, 3 부여. `matchScore`는 QA용 디버그 값(정확한 duration일수록, 최근 미완료일수록 높음)
 6. **결과 없음 처리**: 모든 tier를 다 돌아도 후보가 0개면 `QUEST_001`
 
-> 참고: `situation === 'MOVING'`(이동 중)을 지원하는 퀘스트가 현재 시드 12개 중 하나도 없어서, 지금은 이 조합으로 요청하면 항상 `QUEST_001`이 된다. 콘텐츠 갭이며 PM에게 알릴 필요 있음.
+> 참고: `situation === 'MOVING'`(이동 중)을 지원하는 퀘스트가 현재 시드 36개 중 하나도 없어서, 지금은 이 조합으로 요청하면 항상 `QUEST_001`이 된다. 콘텐츠 갭이며 PM에게 알릴 필요 있음.
 
 ```
 // LLM 보강 여지:
@@ -87,7 +87,7 @@ const POSTURE_LABEL_MAP: Record<'SITTING' | 'STANDING' | 'MOVING', string> = {
 
 - 참고 스키마: [apps/api/prisma/schema.prisma](../apps/api/prisma/schema.prisma) `Quest` 모델
 - 참고 엔드포인트: [apps/api/src/routes/quest.routes.ts](../apps/api/src/routes/quest.routes.ts)
-- 시드 데이터: [apps/api/prisma/seed.ts](../apps/api/prisma/seed.ts) (PM 기준표 12개 퀘스트)
+- 시드 데이터: [apps/api/prisma/seed.ts](../apps/api/prisma/seed.ts) (PM 기준표 36개 퀘스트, 영역×시간당 3개씩)
 
 ## 5. PM 예시 케이스 검증 (추천_로직_예시 시트)
 
