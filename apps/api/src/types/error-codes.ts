@@ -82,8 +82,40 @@ export const ONB_ERROR_CODES = {
   }
 } as const
 
+export const SHOP_ERROR_CODES = {
+  SHOP_001: {
+    code: 'SHOP_001',
+    message: '존재하지 않는 상품입니다.'
+  },
+  SHOP_002: {
+    code: 'SHOP_002',
+    message: '이미 구매한 상품입니다.'
+  },
+  SHOP_003: {
+    code: 'SHOP_003',
+    message: '해금 레벨에 도달하지 못했습니다.'
+  },
+  SHOP_004: {
+    code: 'SHOP_004',
+    message: '토큰이 부족합니다.'
+  }
+} as const
+
+export const PASS_ERROR_CODES = {
+  PASS_001: {
+    code: 'PASS_001',
+    message: '토큰이 부족합니다.'
+  },
+  PASS_002: {
+    code: 'PASS_002',
+    message: '이미 이용 중인 패스가 있습니다.'
+  }
+} as const
+
 export type QuestErrorCode = keyof typeof QUEST_ERROR_CODES
 export type RewardErrorCode = keyof typeof REWARD_ERROR_CODES
 export type GrowthErrorCode = keyof typeof GROWTH_ERROR_CODES
 export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES
 export type OnbErrorCode = keyof typeof ONB_ERROR_CODES
+export type ShopErrorCode = keyof typeof SHOP_ERROR_CODES
+export type PassErrorCode = keyof typeof PASS_ERROR_CODES

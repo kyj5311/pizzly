@@ -34,7 +34,7 @@ export interface RecordSummaryBoxLog {
 export interface RecordSummaryTokenLog {
   id: string
   amount: number
-  type: 'EARN' | 'SPEND' // 현재는 지급만 기록해서 항상 EARN. 사용(SPEND)은 상점/패스 결제 붙으면 추가
+  type: 'EARN' | 'SPEND'
   reason: string
   occurredAt: string
 }

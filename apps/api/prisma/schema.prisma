@@ -54,6 +54,7 @@ model User {
   questLogs         QuestLog[]
   rewardLogs        RewardLog[]
   passSubscriptions PassSubscription[]
+  shopPurchases     ShopPurchase[]
 
   @@map("users")
 }
@@ -148,16 +149,33 @@ model RewardLog {
 }
 
 // BE2 소관: 패스/프리미엄 결제 연동
+// PAS-02: 단일 요금제(고정 기간·토큰가) 가정. 실제 PG 연동 없이 토큰 결제로만 구매.
 model PassSubscription {
-  id         String    @id @default(uuid())
-  userId     String    @map("user_id")
+  id         String       @id @default(uuid())
+  userId     String       @map("user_id")
   planType   PassPlanType @map("plan_type")
-  startedAt  DateTime  @map("started_at")
-  expiresAt  DateTime? @map("expires_at")
-  paymentRef String?   @map("payment_ref") // 결제 연동 참조 ID
-  createdAt  DateTime  @default(now()) @map("created_at")
+  startedAt  DateTime     @map("started_at")
+  expiresAt  DateTime?    @map("expires_at")
+  paymentRef String?      @map("payment_ref") // 결제 연동 참조 ID
+  tokenSpent Int?         @map("token_spent") // 토큰으로 구매한 경우 차감된 토큰 수 (기록 조회용)
+  createdAt  DateTime     @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
   @@map("pass_subscriptions")
+}
+
+// BE2 소관: 상점(SHT-01~03). 상품 카탈로그는 PM 기준표 부재로 shop.service.ts에 고정 목록으로 정의,
+// 이 테이블은 구매/보유 이력만 저장한다.
+model ShopPurchase {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  itemId     String   @map("item_id") // shop.service.ts SHOP_CATALOG의 id
+  tokenSpent Int?     @map("token_spent") // TOKEN 섹션 구매 시 차감된 토큰 수, LEVEL/KRW는 null
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, itemId])
+  @@map("shop_purchases")
 }

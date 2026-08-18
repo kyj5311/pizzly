@@ -1,6 +1,7 @@
 import { prisma } from '../utils/prisma'
+import { SHOP_CATALOG } from './shop.service'
 import type { QuestCategory } from '../types/quest'
-import type { RecordSummary, RewardRecordItem, TodayRecordItem } from '../types/record'
+import type { RecordSummary, RecordSummaryTokenLog, RewardRecordItem, TodayRecordItem } from '../types/record'
 
 // REC-01~04 소관. QuestLog/RewardLog는 BE1이 쓰는 테이블을 읽기 전용으로 조회한다.
 // RewardLog.rewardType 값은 schema.prisma 주석의 'EXP' | 'BOX' | 'TOKEN' 컨벤션을 따른다고 가정 (BE1과 확정 필요).
@@ -71,22 +72,56 @@ export async function getBoxRecords(userId: string): Promise<RewardRecordItem[]>
   return getRewardRecords(userId, REWARD_TYPE_BOX)
 }
 
-// REC-04: 토큰 기록
-// 지금은 "획득" 이력만 조회 가능. "사용"(상점/패스 구매로 토큰 소모) 기록은
-// SHT-01~03·PAS-02 결제 로직이 아직 없어서 별도 원장 테이블이 없음 — 그 기능 붙을 때 같이 추가 필요.
+// REC-04: 토큰 획득 기록
 export async function getTokenRecords(userId: string): Promise<RewardRecordItem[]> {
   return getRewardRecords(userId, REWARD_TYPE_TOKEN)
 }
 
+// REC-04: 토큰 사용 기록 (상점 TOKEN 섹션 구매 + 패스 구매)
+async function getTokenSpendRecords(userId: string): Promise<RecordSummaryTokenLog[]> {
+  const [shopSpends, passSpends] = await Promise.all([
+    prisma.shopPurchase.findMany({ where: { userId, tokenSpent: { not: null } } }),
+    prisma.passSubscription.findMany({ where: { userId, tokenSpent: { not: null } } })
+  ])
+
+  const shopLogs = shopSpends.map((purchase) => ({
+    id: purchase.id,
+    amount: purchase.tokenSpent as number,
+    type: 'SPEND' as const,
+    reason: `상점 구매: ${SHOP_CATALOG.find((item) => item.id === purchase.itemId)?.name ?? purchase.itemId}`,
+    occurredAt: purchase.createdAt.toISOString()
+  }))
+
+  const passLogs = passSpends.map((subscription) => ({
+    id: subscription.id,
+    amount: subscription.tokenSpent as number,
+    type: 'SPEND' as const,
+    reason: '피즐리 패스 구매',
+    occurredAt: subscription.createdAt.toISOString()
+  }))
+
+  return [...shopLogs, ...passLogs]
+}
+
 // REC-01~04 통합. FE2 RecordPage가 한 번에 받아가는 형태.
 export async function getRecordSummary(userId: string): Promise<RecordSummary> {
-  const [todayRecords, totalCompletedCount, totalActiveMinutes, boxRecords, tokenRecords] = await Promise.all([
-    getTodayRecords(userId),
-    getTotalCompletedCount(userId),
-    getTotalActiveMinutes(userId),
-    getBoxRecords(userId),
-    getTokenRecords(userId)
-  ])
+  const [todayRecords, totalCompletedCount, totalActiveMinutes, boxRecords, tokenEarnRecords, tokenSpendLogs] =
+    await Promise.all([
+      getTodayRecords(userId),
+      getTotalCompletedCount(userId),
+      getTotalActiveMinutes(userId),
+      getBoxRecords(userId),
+      getTokenRecords(userId),
+      getTokenSpendRecords(userId)
+    ])
+
+  const tokenEarnLogs: RecordSummaryTokenLog[] = tokenEarnRecords.map((record) => ({
+    id: record.rewardLogId,
+    amount: (record.rewardValue as { token?: number }).token ?? 0,
+    type: 'EARN',
+    reason: '퀘스트 완료 보상',
+    occurredAt: record.earnedAt
+  }))
 
   return {
     todayQuests: todayRecords.map((record) => ({
@@ -101,12 +136,6 @@ export async function getRecordSummary(userId: string): Promise<RecordSummary> {
       obtainedAt: record.earnedAt,
       gainedExp: (record.rewardValue as { exp?: number }).exp ?? 0
     })),
-    tokenLogs: tokenRecords.map((record) => ({
-      id: record.rewardLogId,
-      amount: (record.rewardValue as { token?: number }).token ?? 0,
-      type: 'EARN',
-      reason: '퀘스트 완료 보상',
-      occurredAt: record.earnedAt
-    }))
+    tokenLogs: [...tokenEarnLogs, ...tokenSpendLogs].sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1))
   }
 }
