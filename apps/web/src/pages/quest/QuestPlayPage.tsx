@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
-import { ProgressBar } from '../../components/ui/ProgressBar';
+import { AppScreen, Button, Modal, ProgressBar } from '../../shared/ui';
 import { RepeatCounter } from '../../components/quest/RepeatCounter';
 import { useTimer } from '../../hooks/use-timer';
 import { formatDuration } from '../../utils/format';
@@ -74,7 +71,7 @@ export default function QuestPlayPage() {
       </div>
 
       <Modal open={askStop} title="퀘스트를 그만할까요?" onClose={() => setAskStop(false)}>
-        <p className="mb-5 text-ink-muted">지금 나가면 이번 기록은 저장되지 않아요.</p>
+        <p className="mb-5 text-muted">지금 나가면 이번 기록은 저장되지 않아요.</p>
         <div className="flex gap-3">
           <Button variant="secondary" fullWidth onClick={() => setAskStop(false)}>
             계속하기

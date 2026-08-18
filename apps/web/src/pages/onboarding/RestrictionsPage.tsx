@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppScreen } from '../../components/ui/AppScreen';
-import { Button } from '../../components/ui/Button';
-import { SelectableCard } from '../../components/ui/SelectableCard';
+import { AppScreen, Button, SelectableCard } from '../../shared/ui';
 import { StepIndicator } from '../../components/ui/StepIndicator';
 import { useOnboarding } from '../../store/onboarding-store';
 import type { Restriction } from '../../types/onboarding';
