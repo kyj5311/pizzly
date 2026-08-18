@@ -12,11 +12,11 @@ export interface QuestContext {
 
 /**
  * 퀘스트 1건.
- * ※ 서버 QuestLog.questId 가 Int 이므로 id 는 number 로 맞춰둔다.
- * ※ 퀘스트 마스터 데이터의 소유 주체(BE/FE)는 미확정 — 현재는 FE 목업이 원본.
+ * ※ 서버 Quest.id 는 uuid 문자열이라 id 는 string.
+ * ※ 퀘스트 마스터 데이터는 BE2가 PM 기준표 기반으로 관리 (apps/api/src/data/quest-seed-data.ts).
  */
 export interface Quest {
-  id: number;
+  id: string;
   title: string;
   area: WellnessArea;
   /** 실제 수행 시간(초) */

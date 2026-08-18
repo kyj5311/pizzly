@@ -16,3 +16,9 @@ export async function mockGetQuestList(): Promise<QuestListItem[]> {
   await new Promise((r) => setTimeout(r, 150));
   return ITEMS;
 }
+
+export async function mockSetQuestSaved(id: string, saved: boolean): Promise<void> {
+  await new Promise((r) => setTimeout(r, 100));
+  const item = ITEMS.find((i) => i.id === id);
+  if (item) item.saved = saved;
+}

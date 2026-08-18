@@ -6,8 +6,7 @@
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
-  message?: string;
-  code?: string;
+  error: { code: string; message: string } | null;
 }
 
 export class ApiError extends Error {

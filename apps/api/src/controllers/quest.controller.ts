@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from 'express'
 import type { AuthedRequest } from '../middlewares/auth.middleware'
-import { recommendQuests } from '../services/quest.service'
+import { listQuests, recommendQuests, setQuestBookmark } from '../services/quest.service'
 import { completeQuestAndGrantRewards } from '../services/reward.service'
 import { prisma } from '../utils/prisma'
 import { sendError, sendSuccess } from '../utils/response'
@@ -41,6 +41,54 @@ export async function recommend(
     }
 
     sendSuccess(res, { quests })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// FE2 퀘스트 목록(둘러보기 카탈로그)용
+export async function list(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+
+  try {
+    const quests = await listQuests(userId)
+    sendSuccess(res, quests)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// 퀘스트 목록 화면 보관함(♡) 토글
+export async function setBookmark(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+  const { id } = req.params
+  const saved = req.method === 'POST'
+
+  try {
+    const error = await setQuestBookmark(userId, id, saved)
+    if (error === 'NOT_FOUND') {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    sendSuccess(res, { saved })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// QST-05 가이드 화면용 상세 조회. 추천 응답은 요약값만 주므로 steps/guideType 등은 여기서 별도 조회한다.
+export async function detail(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const { id } = req.params
+
+  try {
+    const quest = await prisma.quest.findUnique({ where: { id } })
+    if (!quest) {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    sendSuccess(res, quest)
   } catch (err) {
     next(err)
   }

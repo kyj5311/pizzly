@@ -1,5 +1,7 @@
 import { prisma } from '../utils/prisma'
-import type { ApplyGrowthResult } from '../types/growth'
+import type { ApplyGrowthResult, LatestGrowthResult } from '../types/growth'
+
+const MILESTONES = [30, 60, 100] as const
 
 // GRW-01/02 소관. BE1의 보상 로직(REW-01~04)이 경험치를 지급한 직후 이 모듈을 호출해서
 // Pizzly.level/exp/growthStage를 갱신한다. BE2는 여기까지만 담당하고, 그 결과를 화면에 보여주는
@@ -51,5 +53,42 @@ export async function applyGrowth(userId: string, expGained: number): Promise<Ap
     growthStage: updated.growthStage,
     leveledUp: nextLevel > pizzly.level,
     stageUp: nextGrowthStage > pizzly.growthStage
+  }
+}
+
+// GET /api/growth/latest 용. 마지막 퀘스트 완료에서 얻은 경험치를 역산해서 "직전 레벨"을 구한다
+// (레벨별 이력을 따로 저장하지 않아서, 현재 누적치에서 마지막으로 얻은 만큼을 빼는 방식으로 계산)
+export async function getLatestGrowthResult(userId: string): Promise<LatestGrowthResult> {
+  const pizzly = await prisma.pizzly.findUniqueOrThrow({ where: { userId } })
+
+  const lastQuestLog = await prisma.questLog.findFirst({
+    where: { userId },
+    orderBy: { completedAt: 'desc' }
+  })
+
+  let gainedExp = 0
+  if (lastQuestLog) {
+    const rewardLogs = await prisma.rewardLog.findMany({
+      where: { questLogId: lastQuestLog.id, rewardType: { in: ['EXP', 'BOX'] } }
+    })
+    gainedExp = rewardLogs.reduce((sum, log) => {
+      const value = log.rewardValue as { exp?: number }
+      return sum + (value.exp ?? 0)
+    }, 0)
+  }
+
+  const previousTotalExp = Math.max(0, pizzly.exp - gainedExp)
+  const previousLevel = calculateLevel(previousTotalExp)
+  const currentLevel = pizzly.level
+
+  const reachedMilestone = MILESTONES.find((milestone) => previousLevel < milestone && currentLevel >= milestone)
+
+  return {
+    gainedExp,
+    previousLevel,
+    currentLevel,
+    currentExp: pizzly.exp % EXP_PER_LEVEL,
+    nextLevelExp: EXP_PER_LEVEL,
+    reachedMilestone
   }
 }

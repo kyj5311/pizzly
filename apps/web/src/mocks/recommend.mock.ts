@@ -9,7 +9,7 @@ import type { Restriction } from '../types/onboarding';
  */
 export function pickQuest(
   context: QuestContext,
-  options: { excludeId?: number; restrictions?: Restriction[] } = {},
+  options: { excludeId?: string; restrictions?: Restriction[] } = {},
 ): Quest | null {
   const { excludeId, restrictions = [] } = options;
 

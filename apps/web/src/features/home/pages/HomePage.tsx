@@ -39,7 +39,10 @@ export default function HomePage() {
             <Icon name="bell" size={68} alt="알림" />
             <span className="absolute right-1 top-1 h-3 w-3 rounded-full bg-danger ring-2 ring-white" />
           </span>
-          <span className="flex w-[84px] flex-col items-center rounded-lg bg-white/95 px-2 py-1.5 shadow-card">
+          <Link
+            to="/pass"
+            className="flex w-[84px] flex-col items-center rounded-lg bg-white/95 px-2 py-1.5 shadow-card active:opacity-70"
+          >
             <span className="flex items-center gap-1 text-[10px] font-semibold text-muted">
               <Icon name="pass" size={14} />
               패스
@@ -47,8 +50,11 @@ export default function HomePage() {
             <span className="whitespace-nowrap text-xs font-bold text-accent-strong">
               {status?.hasPass ? '이용중' : '미구매'}
             </span>
-          </span>
-          <span className="flex w-[84px] flex-col items-center rounded-lg bg-white/95 px-2 py-1.5 shadow-card">
+          </Link>
+          <Link
+            to="/shop"
+            className="flex w-[84px] flex-col items-center rounded-lg bg-white/95 px-2 py-1.5 shadow-card active:opacity-70"
+          >
             <span className="flex items-center gap-1 text-[10px] font-semibold text-muted">
               <Icon name="token" size={14} />
               토큰
@@ -56,7 +62,7 @@ export default function HomePage() {
             <span className="whitespace-nowrap text-xs font-bold text-gold-strong">
               {(status?.tokenBalance ?? 0).toLocaleString()}
             </span>
-          </span>
+          </Link>
         </div>
 
         {/* 중앙: 인사 문구(말풍선 없이 글자 자체에 디자인) — 헤더 아이콘 아래로 여유를 두고 배치 */}
@@ -132,6 +138,14 @@ export default function HomePage() {
             </div>
           </Card>
         </div>
+
+        <Link
+          to="/record"
+          className="mt-3 flex items-center justify-between rounded-card border border-border bg-surface px-4 py-3 text-sm font-semibold active:bg-bg"
+        >
+          전체 기록 보기
+          <span aria-hidden>→</span>
+        </Link>
       </div>
 
       {/* 남는 세로 공간은 맨 아래로 몰아서, 위쪽 요소들은 서로 가깝게 붙어 있도록 한다 */}

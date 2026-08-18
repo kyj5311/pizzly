@@ -36,9 +36,9 @@ export default function QuestCompletePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const goHome = () => {
+  const goToGrowth = () => {
     clear();
-    navigate('/');
+    navigate('/growth');
   };
 
   return (
@@ -46,8 +46,8 @@ export default function QuestCompletePage() {
       title="퀘스트 완료!"
       subtitle="피즐리가 조금 더 자랐어요."
       footer={
-        <Button fullWidth onClick={goHome}>
-          홈으로
+        <Button fullWidth onClick={goToGrowth}>
+          성장 확인하기
         </Button>
       }
     >
