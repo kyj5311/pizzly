@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from 'express'
 import type { AuthedRequest } from '../middlewares/auth.middleware'
-import { recommendQuests } from '../services/quest.service'
+import { listQuests, recommendQuests } from '../services/quest.service'
 import { completeQuestAndGrantRewards } from '../services/reward.service'
 import { prisma } from '../utils/prisma'
 import { sendError, sendSuccess } from '../utils/response'
@@ -41,6 +41,16 @@ export async function recommend(
     }
 
     sendSuccess(res, { quests })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// FE2 퀘스트 목록(둘러보기 카탈로그)용
+export async function list(_req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const quests = await listQuests()
+    sendSuccess(res, quests)
   } catch (err) {
     next(err)
   }

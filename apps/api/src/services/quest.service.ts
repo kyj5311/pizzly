@@ -1,5 +1,5 @@
 import { prisma } from '../utils/prisma'
-import type { QuestCondition, QuestDurationMinutes, QuestSituation, RecommendedQuest, RecommendQuestInput } from '../types/quest'
+import type { QuestCategory, QuestCondition, QuestDurationMinutes, QuestSituation, RecommendedQuest, RecommendQuestInput } from '../types/quest'
 
 // docs/quest-recommendation-spec.md 3장(매칭 로직) 참고
 // condition으로 카테고리를 먼저 고정하고(다른 카테고리는 후보에서 아예 제외), 그 안에서 duration을 정확히 맞춘 것을
@@ -16,7 +16,7 @@ const DURATION_ENUM_MAP: Record<QuestDurationMinutes, string> = {
 }
 
 // PM 기준표(필드_정의 시트)에는 condition 전용 필드가 없어 category로 직접 매핑
-const CONDITION_CATEGORY_MAP: Record<QuestCondition, string> = {
+const CONDITION_CATEGORY_MAP: Record<QuestCondition, QuestCategory> = {
   EYE_FATIGUE: 'EYE',
   WRIST_FINGER: 'WRIST',
   NECK_SHOULDER: 'NECK_SHOULDER',
@@ -97,4 +97,44 @@ async function getRecentlyCompletedQuestIds(userId: string): Promise<Set<string>
     select: { questId: true }
   })
   return new Set(logs.map((log) => log.questId))
+}
+
+// FE2 퀘스트 목록(19번 화면, 둘러보기 카탈로그)용. FE1의 QST-04 추천 흐름과는 별개.
+// FE2의 QuestListArea는 BREATH_REST 대신 REST를 쓰고, "보관함(saved)" 기능은 아직 서버에 없어 항상 false.
+export interface QuestListItem {
+  id: string
+  title: string
+  area: 'EYE' | 'WRIST' | 'NECK_SHOULDER' | 'REST'
+  durationMin: number
+  detail: string
+  saved: boolean
+}
+
+const CATEGORY_TO_AREA: Record<string, QuestListItem['area']> = {
+  EYE: 'EYE',
+  WRIST: 'WRIST',
+  NECK_SHOULDER: 'NECK_SHOULDER',
+  BREATH_REST: 'REST'
+}
+
+const DURATION_ENUM_TO_MIN: Record<string, number> = {
+  MIN_1: 1,
+  MIN_3: 3,
+  MIN_5: 5
+}
+
+export async function listQuests(): Promise<QuestListItem[]> {
+  const quests = await prisma.quest.findMany({
+    where: { isActive: true },
+    orderBy: [{ category: 'asc' }, { duration: 'asc' }]
+  })
+
+  return quests.map((quest) => ({
+    id: quest.id,
+    title: quest.title,
+    area: CATEGORY_TO_AREA[quest.category] ?? 'REST',
+    durationMin: DURATION_ENUM_TO_MIN[quest.duration] ?? 1,
+    detail: quest.environment ?? quest.note ?? '',
+    saved: false
+  }))
 }
