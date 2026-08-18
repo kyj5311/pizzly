@@ -46,6 +46,23 @@ export async function recommend(
   }
 }
 
+// QST-05 가이드 화면용 상세 조회. 추천 응답은 요약값만 주므로 steps/guideType 등은 여기서 별도 조회한다.
+export async function detail(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const { id } = req.params
+
+  try {
+    const quest = await prisma.quest.findUnique({ where: { id } })
+    if (!quest) {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    sendSuccess(res, quest)
+  } catch (err) {
+    next(err)
+  }
+}
+
 // QST-07: 퀘스트 완료. 완료 로그 생성 + 보상 지급(REW-01~04) + 성장 반영(GRW-01/02)
 export async function complete(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
   const userId = req.userId as string

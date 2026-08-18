@@ -18,7 +18,7 @@ export default function QuestRecommendPage() {
   const [status, setStatus] = useState<Status>('loading');
 
   const load = useCallback(
-    async (excludeId?: number) => {
+    async (excludeId?: string) => {
       setStatus('loading');
       try {
         const next = await recommendQuest(state as QuestContext, { excludeId });

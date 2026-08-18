@@ -8,7 +8,7 @@ import type { Quest } from '../types/quest';
 export const QUEST_MASTER: Quest[] = [
   // ---- 눈 건강 ----
   {
-    id: 101,
+    id: '101',
     title: '먼 곳 바라보기',
     area: 'EYE',
     durationSec: 60,
@@ -19,7 +19,7 @@ export const QUEST_MASTER: Quest[] = [
     steps: ['6m 이상 떨어진 한 점을 찾으세요.', '20초간 그 점을 바라봅니다.', '눈을 천천히 5번 깜빡입니다.'],
   },
   {
-    id: 102,
+    id: '102',
     title: '눈 깜빡임 운동',
     area: 'EYE',
     durationSec: 60,
@@ -31,7 +31,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 10,
   },
   {
-    id: 103,
+    id: '103',
     title: '눈 주변 지압',
     area: 'EYE',
     durationSec: 180,
@@ -42,7 +42,7 @@ export const QUEST_MASTER: Quest[] = [
     steps: ['눈썹 안쪽 끝을 엄지로 지그시 누릅니다.', '5초 누르고 5초 뗍니다.', '관자놀이도 같은 방법으로 눌러줍니다.'],
   },
   {
-    id: 104,
+    id: '104',
     title: '눈동자 사방 돌리기',
     area: 'EYE',
     durationSec: 300,
@@ -56,7 +56,7 @@ export const QUEST_MASTER: Quest[] = [
 
   // ---- 손목·손가락 ----
   {
-    id: 201,
+    id: '201',
     title: '손목 돌리기',
     area: 'WRIST',
     durationSec: 60,
@@ -68,7 +68,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 2,
   },
   {
-    id: 202,
+    id: '202',
     title: '손가락 쫙 펴기',
     area: 'WRIST',
     durationSec: 60,
@@ -80,7 +80,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 8,
   },
   {
-    id: 203,
+    id: '203',
     title: '손목 스트레칭',
     area: 'WRIST',
     durationSec: 180,
@@ -91,7 +91,7 @@ export const QUEST_MASTER: Quest[] = [
     steps: ['한 팔을 앞으로 뻗습니다.', '손등을 아래로 꺾어 15초 유지합니다.', '반대 방향으로도 15초 유지합니다.', '반대 팔도 동일하게 합니다.'],
   },
   {
-    id: 204,
+    id: '204',
     title: '손바닥 맞대고 밀기',
     area: 'WRIST',
     durationSec: 300,
@@ -105,7 +105,7 @@ export const QUEST_MASTER: Quest[] = [
 
   // ---- 목·어깨 ----
   {
-    id: 301,
+    id: '301',
     title: '어깨 으쓱하기',
     area: 'NECK_SHOULDER',
     durationSec: 60,
@@ -117,7 +117,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 10,
   },
   {
-    id: 302,
+    id: '302',
     title: '목 옆으로 늘이기',
     area: 'NECK_SHOULDER',
     durationSec: 180,
@@ -128,7 +128,7 @@ export const QUEST_MASTER: Quest[] = [
     steps: ['오른손을 머리 왼쪽에 얹습니다.', '15초간 천천히 당깁니다.', '반대쪽도 같은 방법으로 합니다.'],
   },
   {
-    id: 303,
+    id: '303',
     title: '턱 당기기',
     area: 'NECK_SHOULDER',
     durationSec: 60,
@@ -140,7 +140,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 8,
   },
   {
-    id: 304,
+    id: '304',
     title: '견갑골 모으기',
     area: 'NECK_SHOULDER',
     durationSec: 300,
@@ -154,7 +154,7 @@ export const QUEST_MASTER: Quest[] = [
 
   // ---- 호흡·휴식 ----
   {
-    id: 401,
+    id: '401',
     title: '깊게 숨쉬기',
     area: 'REST',
     durationSec: 60,
@@ -166,7 +166,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 6,
   },
   {
-    id: 402,
+    id: '402',
     title: '4-7-8 호흡',
     area: 'REST',
     durationSec: 180,
@@ -178,7 +178,7 @@ export const QUEST_MASTER: Quest[] = [
     repeatCount: 4,
   },
   {
-    id: 403,
+    id: '403',
     title: '눈 감고 멍때리기',
     area: 'REST',
     durationSec: 300,
