@@ -123,20 +123,21 @@ model QuestLog {
   elapsedSeconds Int      @map("elapsed_seconds")
   completedAt    DateTime @default(now()) @map("completed_at")
 
-  user      User       @relation(fields: [userId], references: [id])
-  quest     Quest      @relation(fields: [questId], references: [id])
-  rewardLog RewardLog?
+  user       User        @relation(fields: [userId], references: [id])
+  quest      Quest       @relation(fields: [questId], references: [id])
+  rewardLogs RewardLog[]
 
   @@index([userId, completedAt])
   @@map("quest_logs")
 }
 
 // BE1 소관: 보상 로직 결과 저장
+// 완료 1건당 EXP/BOX/TOKEN이 각각 별도 행으로 남을 수 있어 questLogId는 1:N (완료 1건 = 보상 이벤트 여러 개)
 model RewardLog {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
-  questLogId  String   @unique @map("quest_log_id")
-  rewardType  String   @map("reward_type") // 'EXP' | 'BOX' | 'TOKEN' 권장 (REC-03/04 기록 조회가 이 값으로 필터링함, BE1과 확정 필요)
+  questLogId  String   @map("quest_log_id")
+  rewardType  String   @map("reward_type") // 'EXP' | 'BOX' | 'TOKEN'
   rewardValue Json     @map("reward_value")
   createdAt   DateTime @default(now()) @map("created_at")
 
