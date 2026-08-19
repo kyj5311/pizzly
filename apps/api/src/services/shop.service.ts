@@ -10,6 +10,7 @@ export const SHOP_CATALOG: ShopItem[] = [
   { id: 'shop-token-costume', section: 'TOKEN', name: '희귀 코스튬', price: 150, priceUnit: 'TOKEN' },
   { id: 'shop-token-accessory', section: 'TOKEN', name: '한정 액세서리', price: 120, priceUnit: 'TOKEN' },
   { id: 'shop-token-booster', section: 'TOKEN', name: '경험치 부스터 (30분)', price: 80, priceUnit: 'TOKEN' },
+  { id: 'shop-token-reset-appearance', section: 'TOKEN', name: '처음 곰으로 돌아가기', price: 50, priceUnit: 'TOKEN' },
   { id: 'shop-premium-starter', section: 'PREMIUM', name: '스타터 팩', price: 1200, priceUnit: 'KRW' },
   { id: 'shop-premium-theme', section: 'PREMIUM', name: '테마 세트', price: 5900, priceUnit: 'KRW' },
   { id: 'shop-premium-pack', section: 'PREMIUM', name: '프리미엄 팩', price: 11900, priceUnit: 'KRW' }
