@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw } from 'lucide-react';
 import { AppScreen, Button, Card } from '../../shared/ui';
 import { recommendQuest } from '../../api/quest-api';
+import { ApiError } from '../../types/api';
 import { useQuestFlow } from '../../store/quest-flow-store';
 import type { Quest, QuestContext } from '../../types/quest';
 
@@ -14,6 +15,7 @@ export default function QuestRecommendPage() {
   const { state, patch, isReady } = useQuestFlow();
   const [quest, setQuest] = useState<Quest | null>(null);
   const [status, setStatus] = useState<Status>('loading');
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const load = useCallback(
     async (excludeId?: string) => {
@@ -26,7 +28,14 @@ export default function QuestRecommendPage() {
         }
         setQuest(next);
         setStatus('ready');
-      } catch {
+      } catch (err) {
+        const detail =
+          err instanceof ApiError
+            ? `[${err.status}] ${err.code}: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : String(err);
+        setErrorDetail(detail);
         setStatus('error');
       }
     },
@@ -63,6 +72,7 @@ export default function QuestRecommendPage() {
         <Button fullWidth onClick={() => void load()}>
           다시 시도
         </Button>
+        {errorDetail && <p className="mt-3 break-all text-center text-xs text-muted">{errorDetail}</p>}
       </AppScreen>
     );
   }
