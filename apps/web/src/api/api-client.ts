@@ -4,11 +4,10 @@ import { tokenStorage } from '../utils/storage';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
- * 목업 모드 스위치.
- * 백엔드 서버가 아직 기동되지 않아 기본값은 true.
- * 서버가 뜨면 .env 에서 VITE_USE_MOCK=false 로 바꾸면 전 도메인이 실제 API 로 전환된다.
+ * 목업 모드 스위치. shared/api/client.ts(FE2)와 기준 통일 — VITE_USE_MOCK=true일 때만 mock,
+ * 값이 없으면(배포 환경 등) 실제 API를 쓴다.
  */
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = tokenStorage.get();

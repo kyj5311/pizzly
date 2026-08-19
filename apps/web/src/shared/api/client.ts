@@ -1,7 +1,9 @@
 import { tokenStorage } from '../../utils/storage';
 import { ApiError, type ApiResponse } from './types';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// VITE_API_BASE_URL은 API 서버 origin만 담는다(예: https://pizzly-api.onrender.com). 로컬은 비워두면
+// vite 프록시(/api → localhost:4000)를 타므로 그대로 '/api'가 된다. FE1 쪽 api-client.ts도 같은 규칙을 쓴다.
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || ''}/api`;
 
 /** 목업 모드. .env.local 에 VITE_USE_MOCK=true 를 두면 각 도메인 api 가 목업을 반환한다. */
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
