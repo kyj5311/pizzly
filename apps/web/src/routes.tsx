@@ -21,6 +21,7 @@ import ShopPage from './features/shop/pages/ShopPage';
 import PassPage from './features/pass/pages/PassPage';
 import RecordPage from './features/record/pages/RecordPage';
 import QuestListPage from './features/quest-list/pages/QuestListPage';
+import SettingsPage from './features/settings/pages/SettingsPage';
 
 // 로그인 토큰 없이 화면에 바로 들어오면(북마크, 세션 만료 등) API가 계속 401만
 // 반환해서 원인 모를 에러 화면만 보게 되던 문제 방지 — 토큰 없으면 로그인으로 보낸다.
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
       { path: '/pass', element: <PassPage /> },
       { path: '/record', element: <RecordPage /> },
       { path: '/quests', element: <QuestListPage /> }, // 19번 화면(퀘스트 목록)
+      { path: '/settings', element: <SettingsPage /> },
 
       // --- FE1 영역 ---
       {
