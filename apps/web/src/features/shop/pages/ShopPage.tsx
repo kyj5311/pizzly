@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppScreen, BackHomeButton, Button, Card, Icon } from '../../../shared/ui';
 import type { IconName } from '../../../shared/ui';
 import { cn } from '../../../shared/lib/cn';
+import { ApiError } from '../../../shared/api/types';
 import { getShopItems, purchaseItem } from '../api/shopApi';
 import type { ShopItem, ShopSection } from '../types';
 
@@ -16,6 +17,7 @@ export default function ShopPage() {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [section, setSection] = useState<ShopSection>('GENERAL');
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void getShopItems().then(setItems);
@@ -26,8 +28,11 @@ export default function ShopPage() {
 
   const handlePurchase = async (item: ShopItem) => {
     setPurchasingId(item.id);
+    setError(null);
     try {
       await purchaseItem(item.id);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '구매에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setPurchasingId(null);
     }
@@ -52,6 +57,7 @@ export default function ShopPage() {
       </div>
 
       <p className="mb-3 text-xs text-muted">{current.desc}</p>
+      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
 
       <div className="space-y-3">
         {visible.map((item) => (

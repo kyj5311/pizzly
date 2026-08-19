@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AppScreen, BackHomeButton, Button, Card, Icon, ProgressBar } from '../../../shared/ui';
+import { ApiError } from '../../../shared/api/types';
 import { getPassStatus, purchasePass } from '../api/passApi';
 import type { PassStatus } from '../types';
 
@@ -7,6 +8,7 @@ import type { PassStatus } from '../types';
 export default function PassPage() {
   const [status, setStatus] = useState<PassStatus | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void getPassStatus().then(setStatus);
@@ -14,9 +16,12 @@ export default function PassPage() {
 
   const handlePurchase = async () => {
     setPurchasing(true);
+    setError(null);
     try {
       const result = await purchasePass();
       if (result.success) setStatus((prev) => (prev ? { ...prev, active: true } : prev));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '구매에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setPurchasing(false);
     }
@@ -50,6 +55,8 @@ export default function PassPage() {
           </div>
         )}
       </Card>
+
+      {error && <p className="mb-3 text-center text-sm text-danger">{error}</p>}
 
       {/* PAS-02 패스 구매 */}
       <Button fullWidth disabled={purchasing || status?.active} onClick={() => void handlePurchase()}>
