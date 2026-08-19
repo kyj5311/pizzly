@@ -3,8 +3,11 @@ import { AppScreen, BackHomeButton, Button, Card, Icon } from '../../../shared/u
 import type { IconName } from '../../../shared/ui';
 import { cn } from '../../../shared/lib/cn';
 import { ApiError } from '../../../shared/api/types';
+import { appearanceStorage } from '../../../utils/appearance-storage';
 import { getShopItems, purchaseItem } from '../api/shopApi';
 import type { ShopItem, ShopSection } from '../types';
+
+const RESET_APPEARANCE_ITEM_ID = 'shop-token-reset-appearance';
 
 const SECTIONS: { key: ShopSection; label: string; desc: string; icon: IconName }[] = [
   { key: 'GENERAL', label: '일반 상품', desc: '레벨·경험치 조건 달성 시 해금돼요', icon: 'shop' },
@@ -18,6 +21,8 @@ export default function ShopPage() {
   const [section, setSection] = useState<ShopSection>('GENERAL');
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [resetToBase, setResetToBase] = useState(() => appearanceStorage.isResetToBase());
 
   useEffect(() => {
     void getShopItems().then(setItems);
@@ -29,8 +34,14 @@ export default function ShopPage() {
   const handlePurchase = async (item: ShopItem) => {
     setPurchasingId(item.id);
     setError(null);
+    setMessage(null);
     try {
       await purchaseItem(item.id);
+      if (item.id === RESET_APPEARANCE_ITEM_ID) {
+        appearanceStorage.setResetToBase(true);
+        setResetToBase(true);
+        setMessage('피즐리가 아기 곰으로 돌아갔어요!');
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : '구매에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
@@ -58,27 +69,38 @@ export default function ShopPage() {
 
       <p className="mb-3 text-xs text-muted">{current.desc}</p>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
+      {message && <p className="mb-3 text-sm text-accent-strong">{message}</p>}
 
       <div className="space-y-3">
-        {visible.map((item) => (
-          <Card key={item.id} className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <Icon name={current.icon} size={48} />
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{item.name}</p>
-                <p className="whitespace-nowrap text-xs text-muted">{priceLabel(item)}</p>
+        {visible.map((item) => {
+          const isResetItem = item.id === RESET_APPEARANCE_ITEM_ID;
+          const alreadyApplied = isResetItem && resetToBase;
+          return (
+            <Card key={item.id} className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <Icon name={current.icon} size={48} />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{item.name}</p>
+                  <p className="whitespace-nowrap text-xs text-muted">{priceLabel(item)}</p>
+                </div>
               </div>
-            </div>
-            <Button
-              variant="secondary"
-              className="shrink-0 whitespace-nowrap"
-              disabled={purchasingId === item.id || item.priceUnit === 'LEVEL'}
-              onClick={() => void handlePurchase(item)}
-            >
-              {item.priceUnit === 'LEVEL' ? '해금 대기' : purchasingId === item.id ? '구매 중' : '구매'}
-            </Button>
-          </Card>
-        ))}
+              <Button
+                variant="secondary"
+                className="shrink-0 whitespace-nowrap"
+                disabled={purchasingId === item.id || item.priceUnit === 'LEVEL' || alreadyApplied}
+                onClick={() => void handlePurchase(item)}
+              >
+                {alreadyApplied
+                  ? '적용됨'
+                  : item.priceUnit === 'LEVEL'
+                    ? '해금 대기'
+                    : purchasingId === item.id
+                      ? '구매 중'
+                      : '구매'}
+              </Button>
+            </Card>
+          );
+        })}
       </div>
     </AppScreen>
   );

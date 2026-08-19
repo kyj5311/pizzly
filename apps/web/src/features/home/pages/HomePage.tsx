@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppScreen, Card, Icon, PizzlyCharacter, ProgressBar } from '../../../shared/ui';
+import { AppScreen, Button, Card, Icon, Modal, PizzlyCharacter, ProgressBar } from '../../../shared/ui';
 import type { IconName } from '../../../shared/ui';
+import { tokenStorage } from '../../../utils/storage';
 import { getHomeStatus } from '../api/homeApi';
 import type { HomeStatus } from '../types';
+
+const NOTIFICATIONS = [
+  '오늘의 퀘스트를 아직 완료하지 않았어요. 잠깐 피즐리랑 함께해요!',
+  '피즐리가 레벨업까지 얼마 남지 않았어요.',
+];
 
 /**
  * FE2 담당 (HOM-01~04).
@@ -13,10 +19,18 @@ import type { HomeStatus } from '../types';
 export default function HomePage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<HomeStatus | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(true);
 
   useEffect(() => {
     void getHomeStatus().then(setStatus);
   }, []);
+
+  const handleLogout = () => {
+    tokenStorage.clear();
+    navigate('/login');
+  };
 
   const growthPercent = status ? status.growthCurrent / status.growthTarget : 0;
 
@@ -27,18 +41,28 @@ export default function HomePage() {
       <div className="relative -mx-5 -mt-8 min-h-[390px] overflow-hidden rounded-b-[32px] bg-gradient-to-b from-primary/25 via-primary/10 to-bg px-5 pb-3 pt-3">
         {/* 좌측: 메뉴 + 퀘스트·설정·상점, 위에서부터 한 줄로. 캐릭터와 겹치지 않게 오버레이로 띄운다 */}
         <div className="absolute left-5 top-3 z-10 flex flex-col items-center gap-3">
-          <Icon name="menu" size={68} alt="메뉴" />
+          <button type="button" onClick={() => setMenuOpen(true)} aria-label="메뉴">
+            <Icon name="menu" size={68} alt="메뉴" />
+          </button>
           <RailButton to="/quest/time" icon="quest" label="퀘스트" />
-          <RailButton icon="settings" label="설정" />
+          <RailButton to="/settings" icon="settings" label="설정" />
           <RailButton to="/shop" icon="shop" label="상점" />
         </div>
 
         {/* 우측: 알람 + 패스여부·토큰개수(동일 크기 직사각형), 알림 아래로 순서대로 */}
         <div className="absolute right-5 top-3 z-10 flex flex-col items-end gap-2">
-          <span className="relative">
+          <button
+            type="button"
+            className="relative"
+            aria-label="알림"
+            onClick={() => {
+              setNotifOpen(true);
+              setHasUnread(false);
+            }}
+          >
             <Icon name="bell" size={68} alt="알림" />
-            <span className="absolute right-1 top-1 h-3 w-3 rounded-full bg-danger ring-2 ring-white" />
-          </span>
+            {hasUnread && <span className="absolute right-1 top-1 h-3 w-3 rounded-full bg-danger ring-2 ring-white" />}
+          </button>
           <Link
             to="/pass"
             className="flex w-[84px] flex-col items-center rounded-lg bg-white/95 px-2 py-1.5 shadow-card active:opacity-70"
@@ -151,7 +175,44 @@ export default function HomePage() {
       {/* 남는 세로 공간은 맨 아래로 몰아서, 위쪽 요소들은 서로 가깝게 붙어 있도록 한다 */}
       <div className="flex-1" />
       </div>
+
+      <Modal open={menuOpen} title="메뉴" onClose={() => setMenuOpen(false)}>
+        <nav className="space-y-1">
+          <MenuLink to="/growth" label="성장" onNavigate={() => setMenuOpen(false)} />
+          <MenuLink to="/record" label="기록" onNavigate={() => setMenuOpen(false)} />
+          <MenuLink to="/settings" label="설정" onNavigate={() => setMenuOpen(false)} />
+        </nav>
+        <Button variant="secondary" fullWidth className="mt-4" onClick={handleLogout}>
+          로그아웃
+        </Button>
+      </Modal>
+
+      <Modal open={notifOpen} title="알림" onClose={() => setNotifOpen(false)}>
+        {NOTIFICATIONS.length > 0 ? (
+          <ul className="space-y-2">
+            {NOTIFICATIONS.map((text) => (
+              <li key={text} className="rounded-card bg-bg px-3 py-2 text-sm text-text">
+                {text}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted">새로운 알림이 없어요.</p>
+        )}
+      </Modal>
     </AppScreen>
+  );
+}
+
+function MenuLink({ to, label, onNavigate }: { to: string; label: string; onNavigate: () => void }) {
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      className="block rounded-button px-3 py-2.5 text-sm font-semibold active:bg-bg"
+    >
+      {label}
+    </Link>
   );
 }
 
@@ -164,7 +225,6 @@ function RailButton({ to, icon, label }: { to?: string; icon: IconName; label: s
   );
 
   if (!to) {
-    // 설정 화면은 아직 없어서 비활성 아이콘으로만 둔다
     return <div className="flex w-[84px] flex-col items-center gap-1 opacity-70">{content}</div>;
   }
 
