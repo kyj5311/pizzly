@@ -16,7 +16,8 @@
 
 1. Render 대시보드 → New → Web Service → 이 레포 선택
 2. Root Directory: `apps/api` (또는 `render.yaml`이 레포 루트에 있으면 자동 인식 — 지금은 `apps/api/render.yaml`에 있으므로 Render가 자동으로 못 찾으면 대시보드에서 수동 설정)
-3. Build Command: `npm install && npm run prisma:generate && npm run build`
+3. Build Command: `npm install --include=dev && npm run prisma:generate && npm run build`
+   - `--include=dev` 필수: `NODE_ENV=production` 환경변수가 설정돼 있으면 `npm install`이 devDependencies(typescript, @types/* 등 빌드에 필요한 패키지)를 건너뛰어서 빌드가 실패함
 4. Start Command: `npm run start`
 5. Health Check Path: `/health` (이미 구현됨, `{"status":"ok"}` 200 응답 확인됨)
 6. 환경변수 등록 (`render.yaml`에 나열된 키 전부, 값은 `sync: false`라 대시보드에서 직접 입력 필요)
