@@ -1,6 +1,8 @@
 import { useRef, useState, type PointerEvent } from 'react';
 import { appearanceStorage } from '../../utils/appearance-storage';
+import { costumeStorage } from '../../utils/costume-storage';
 import { cn } from '../lib/cn';
+import { COSTUME_ITEMS } from './costume-items';
 import { getPizzlyStage } from './pizzly-stages';
 
 interface PizzlyCharacterProps {
@@ -20,7 +22,11 @@ const MAX_TILT_DEG = 14;
  */
 export function PizzlyCharacter({ level, size = 160, className }: PizzlyCharacterProps) {
   const effectiveLevel = appearanceStorage.isResetToBase() ? 1 : level;
-  const { image: src, name: alt } = getPizzlyStage(effectiveLevel);
+  const stage = getPizzlyStage(effectiveLevel);
+  const { image: src, name: alt } = stage;
+  // 코스튬은 아기 곰(base) 포즈에서 잘라낸 것이라 그 단계에서만 위치가 정확히 맞는다.
+  const showCostumes = stage.minLevel === 1;
+  const equipped = showCostumes ? COSTUME_ITEMS.filter((item) => costumeStorage.isEquipped(item.id)) : [];
   const wrapRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -53,6 +59,22 @@ export function PizzlyCharacter({ level, size = 160, className }: PizzlyCharacte
           className="h-full w-full object-contain transition-transform duration-300 ease-out will-change-transform"
           style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}
         />
+        {equipped.map((item) => (
+          <img
+            key={item.id}
+            src={item.image}
+            alt={item.name}
+            draggable={false}
+            className="pointer-events-none absolute object-contain transition-transform duration-300 ease-out"
+            style={{
+              left: `${item.rect.left * 100}%`,
+              top: `${item.rect.top * 100}%`,
+              width: `${item.rect.width * 100}%`,
+              height: `${item.rect.height * 100}%`,
+              transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+            }}
+          />
+        ))}
       </div>
       <div className="pizzly-shadow mx-auto -mt-2 h-3 w-2/3 rounded-full bg-black/20 blur-[3px]" />
     </div>
