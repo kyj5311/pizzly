@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppScreen, Button, Card, Icon, Modal, PizzlyCharacter, ProgressBar } from '../../../shared/ui';
 import type { IconName } from '../../../shared/ui';
 import { tokenStorage } from '../../../utils/storage';
+import { usePwaInstall } from '../../../pwa/use-pwa-install';
 import { getHomeStatus } from '../api/homeApi';
 import type { HomeStatus } from '../types';
 
@@ -22,6 +23,8 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
+  const [iosInstallOpen, setIosInstallOpen] = useState(false);
+  const { canInstall, isIOS, isStandalone, promptInstall } = usePwaInstall();
 
   useEffect(() => {
     void getHomeStatus().then(setStatus);
@@ -30,6 +33,15 @@ export default function HomePage() {
   const handleLogout = () => {
     tokenStorage.clear();
     navigate('/login');
+  };
+
+  const handleInstallClick = () => {
+    setMenuOpen(false);
+    if (canInstall) {
+      void promptInstall();
+    } else if (isIOS) {
+      setIosInstallOpen(true);
+    }
   };
 
   const growthPercent = status ? status.growthCurrent / status.growthTarget : 0;
@@ -181,10 +193,26 @@ export default function HomePage() {
           <MenuLink to="/growth" label="성장" onNavigate={() => setMenuOpen(false)} />
           <MenuLink to="/record" label="기록" onNavigate={() => setMenuOpen(false)} />
           <MenuLink to="/settings" label="설정" onNavigate={() => setMenuOpen(false)} />
+          {!isStandalone && (canInstall || isIOS) && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className="block w-full rounded-button px-3 py-2.5 text-left text-sm font-semibold active:bg-bg"
+            >
+              앱 다운로드
+            </button>
+          )}
         </nav>
         <Button variant="secondary" fullWidth className="mt-4" onClick={handleLogout}>
           로그아웃
         </Button>
+      </Modal>
+
+      <Modal open={iosInstallOpen} title="홈 화면에 추가하기" onClose={() => setIosInstallOpen(false)}>
+        <p className="text-sm text-muted">
+          Safari 하단의 <strong className="text-text">공유</strong> 버튼을 누른 뒤{' '}
+          <strong className="text-text">홈 화면에 추가</strong>를 선택해주세요.
+        </p>
       </Modal>
 
       <Modal open={notifOpen} title="알림" onClose={() => setNotifOpen(false)}>

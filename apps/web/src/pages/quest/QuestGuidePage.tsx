@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppScreen, Button, Card } from '../../shared/ui';
+import { AppScreen, BackHomeButton, Button, Card } from '../../shared/ui';
 import { useQuestFlow } from '../../store/quest-flow-store';
 
 /** [QST-05] 활동 가이드 — DS 일러스트·모션 도착 전까지 텍스트 안내로 진행 */
@@ -17,6 +17,7 @@ export default function QuestGuidePage() {
 
   return (
     <AppScreen
+      header={<BackHomeButton />}
       title={quest.title}
       footer={
         <Button fullWidth onClick={() => navigate('/quest/play')}>

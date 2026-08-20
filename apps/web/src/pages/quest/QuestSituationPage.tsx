@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppScreen, SelectableCard } from '../../shared/ui';
+import { AppScreen, BackHomeButton, SelectableCard } from '../../shared/ui';
 import { StepIndicator } from '../../components/ui/StepIndicator';
 import { useQuestFlow } from '../../store/quest-flow-store';
 import type { QuestSituation } from '../../types/quest';
@@ -17,7 +17,15 @@ export default function QuestSituationPage() {
   const { state, patch } = useQuestFlow();
 
   return (
-    <AppScreen header={<StepIndicator current={2} total={3} />} title="지금 어디에 있나요?">
+    <AppScreen
+      header={
+        <>
+          <BackHomeButton />
+          <StepIndicator current={2} total={3} />
+        </>
+      }
+      title="지금 어디에 있나요?"
+    >
       <div className="flex flex-col gap-3">
         {SITUATION_OPTIONS.map((option) => (
           <SelectableCard

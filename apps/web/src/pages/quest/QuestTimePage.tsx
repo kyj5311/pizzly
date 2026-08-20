@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppScreen, SelectableCard } from '../../shared/ui';
+import { AppScreen, BackHomeButton, SelectableCard } from '../../shared/ui';
 import { StepIndicator } from '../../components/ui/StepIndicator';
 import { useQuestFlow } from '../../store/quest-flow-store';
 import type { QuestDuration } from '../../types/quest';
@@ -17,7 +17,12 @@ export default function QuestTimePage() {
 
   return (
     <AppScreen
-      header={<StepIndicator current={1} total={3} />}
+      header={
+        <>
+          <BackHomeButton />
+          <StepIndicator current={1} total={3} />
+        </>
+      }
       title="얼마나 시간이 있나요?"
     >
       <div className="flex flex-col gap-3">
