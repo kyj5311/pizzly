@@ -80,6 +80,10 @@ export const AUTH_ERROR_CODES = {
   AUTH_001: {
     code: 'AUTH_001',
     message: '인증에 실패했습니다.'
+  },
+  AUTH_002: {
+    code: 'AUTH_002',
+    message: '존재하지 않는 테스트 계정입니다.'
   }
 } as const
 
