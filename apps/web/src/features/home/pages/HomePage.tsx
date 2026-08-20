@@ -24,6 +24,7 @@ export default function HomePage() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
   const { canInstall, isIOS, isStandalone, promptInstall } = usePwaInstall();
 
   useEffect(() => {
@@ -41,6 +42,10 @@ export default function HomePage() {
       void promptInstall();
     } else if (isIOS) {
       setIosInstallOpen(true);
+    } else {
+      // beforeinstallprompt는 브라우저가 자체 기준(참여도 등)을 만족해야만 쏘는 이벤트라
+      // 아직 안 떴을 수 있다 — 버튼 자체를 숨기지 않고 대체 안내로 대응한다.
+      setInstallGuideOpen(true);
     }
   };
 
@@ -193,7 +198,7 @@ export default function HomePage() {
           <MenuLink to="/growth" label="성장" onNavigate={() => setMenuOpen(false)} />
           <MenuLink to="/record" label="기록" onNavigate={() => setMenuOpen(false)} />
           <MenuLink to="/settings" label="설정" onNavigate={() => setMenuOpen(false)} />
-          {!isStandalone && (canInstall || isIOS) && (
+          {!isStandalone && (
             <button
               type="button"
               onClick={handleInstallClick}
@@ -212,6 +217,14 @@ export default function HomePage() {
         <p className="text-sm text-muted">
           Safari 하단의 <strong className="text-text">공유</strong> 버튼을 누른 뒤{' '}
           <strong className="text-text">홈 화면에 추가</strong>를 선택해주세요.
+        </p>
+      </Modal>
+
+      <Modal open={installGuideOpen} title="앱 설치하기" onClose={() => setInstallGuideOpen(false)}>
+        <p className="text-sm text-muted">
+          이미 설치되어 있거나, 브라우저가 아직 설치 준비가 안 됐을 수 있어요. 주소창 오른쪽의 설치
+          아이콘이나 브라우저 메뉴(⋮)의 <strong className="text-text">&apos;앱 설치&apos;</strong>를
+          확인해주세요.
         </p>
       </Modal>
 
