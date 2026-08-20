@@ -1,30 +1,12 @@
-import { useEffect, useState } from 'react';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { useState } from 'react';
+import { usePwaInstall } from './use-pwa-install';
 
 /** 브라우저의 설치 가능 이벤트를 가로채 커스텀 설치 배너로 보여준다. */
 export function InstallBanner() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const { canInstall, isStandalone, promptInstall } = usePwaInstall();
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  if (!deferredPrompt || dismissed) return null;
-
-  const handleInstall = () => {
-    void deferredPrompt.prompt();
-    void deferredPrompt.userChoice.finally(() => setDeferredPrompt(null));
-  };
+  if (!canInstall || isStandalone || dismissed) return null;
 
   return (
     <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 bg-surface px-4 py-3 shadow-card">
@@ -35,7 +17,7 @@ export function InstallBanner() {
         </button>
         <button
           type="button"
-          onClick={handleInstall}
+          onClick={() => void promptInstall()}
           className="rounded-button bg-primary px-3 py-1.5 text-xs font-bold text-white active:bg-primary-strong"
         >
           설치
