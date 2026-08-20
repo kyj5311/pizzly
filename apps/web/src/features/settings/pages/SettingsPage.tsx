@@ -17,14 +17,23 @@ export default function SettingsPage() {
   const [owned] = useState(() => inventoryStorage.getOwned());
   const [devMode, setDevMode] = useState(() => devModeStorage.isOn());
   const [currentLevel, setCurrentLevel] = useState<number | null>(null);
+  const [currentExp, setCurrentExp] = useState<number | null>(null);
   const [levelInput, setLevelInput] = useState('');
   const [levelError, setLevelError] = useState<string | null>(null);
   const [applyingLevel, setApplyingLevel] = useState(false);
+  const [restoringLevel, setRestoringLevel] = useState(false);
 
   useEffect(() => {
     void getHomeStatus().then((status) => {
+      // 레벨/성장도(0~99)로 원래 누적 경험치를 역산해서, 개발자 모드를 끌 때 정확히 복원한다.
+      const exp = (status.characterLevel - 1) * 100 + status.growthCurrent;
       setCurrentLevel(status.characterLevel);
+      setCurrentExp(exp);
       setLevelInput(String(status.characterLevel));
+      // 새로고침 등으로 개발자 모드가 켜진 채 다시 들어온 경우, snapshot이 없으면 지금 값을 원본으로 저장한다.
+      if (devModeStorage.isOn() && !devModeStorage.getSnapshot()) {
+        devModeStorage.setSnapshot({ level: status.characterLevel, exp });
+      }
     });
   }, []);
 
@@ -33,10 +42,40 @@ export default function SettingsPage() {
     setEquipped(costumeStorage.getEquipped());
   };
 
-  const handleToggleDevMode = () => {
-    const next = !devMode;
-    devModeStorage.set(next);
-    setDevMode(next);
+  const handleToggleDevMode = async () => {
+    if (!devMode) {
+      // 켤 때: 지금 값을 원본으로 저장해둔다.
+      if (currentLevel !== null && currentExp !== null) {
+        devModeStorage.setSnapshot({ level: currentLevel, exp: currentExp });
+      }
+      devModeStorage.set(true);
+      setDevMode(true);
+      return;
+    }
+
+    // 끌 때: 저장해둔 원본 레벨/경험치로 되돌린다.
+    const snapshot = devModeStorage.getSnapshot();
+    if (!snapshot) {
+      devModeStorage.set(false);
+      setDevMode(false);
+      return;
+    }
+
+    setRestoringLevel(true);
+    setLevelError(null);
+    try {
+      const result = await setDevLevel(snapshot.level, snapshot.exp);
+      setCurrentLevel(result.level);
+      setCurrentExp(result.exp);
+      setLevelInput(String(result.level));
+      devModeStorage.clearSnapshot();
+      devModeStorage.set(false);
+      setDevMode(false);
+    } catch (err) {
+      setLevelError(err instanceof ApiError ? err.message : '원래 레벨로 되돌리는 데 실패했어요.');
+    } finally {
+      setRestoringLevel(false);
+    }
   };
 
   const handleApplyLevel = async () => {
@@ -50,6 +89,7 @@ export default function SettingsPage() {
     try {
       const result = await setDevLevel(level);
       setCurrentLevel(result.level);
+      setCurrentExp(result.exp);
     } catch (err) {
       setLevelError(err instanceof ApiError ? err.message : '레벨 변경에 실패했어요.');
     } finally {
@@ -130,8 +170,12 @@ export default function SettingsPage() {
             <h2 className="text-base font-bold">개발자 모드</h2>
             <p className="text-xs text-muted">QA용 기능이에요. 레벨을 직접 바꿔볼 수 있어요.</p>
           </div>
-          <Button variant={devMode ? 'primary' : 'secondary'} onClick={handleToggleDevMode}>
-            {devMode ? '켜짐' : '꺼짐'}
+          <Button
+            variant={devMode ? 'primary' : 'secondary'}
+            disabled={restoringLevel}
+            onClick={() => void handleToggleDevMode()}
+          >
+            {restoringLevel ? '되돌리는 중' : devMode ? '켜짐' : '꺼짐'}
           </Button>
         </div>
 

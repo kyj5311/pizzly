@@ -8,8 +8,15 @@ export async function getGrowthResult(): Promise<GrowthResult> {
   return api.get<GrowthResult>('/growth/latest');
 }
 
-/** 설정 화면 "개발자 모드" 전용. QA용으로 레벨을 직접 지정한다. */
-export async function setDevLevel(level: number): Promise<{ level: number; exp: number; growthStage: number }> {
-  if (USE_MOCK) return mockSetDevLevel(level);
-  return api.post<{ level: number; exp: number; growthStage: number }>('/growth/dev-level', { level });
+/**
+ * 설정 화면 "개발자 모드" 전용. QA용으로 레벨을 직접 지정한다.
+ * exp를 넘기면(개발자 모드 끌 때 원래 값으로 되돌리는 용도) 그 값을 그대로 사용하고,
+ * 안 넘기면 해당 레벨의 시작 경험치로 맞춘다.
+ */
+export async function setDevLevel(
+  level: number,
+  exp?: number,
+): Promise<{ level: number; exp: number; growthStage: number }> {
+  if (USE_MOCK) return mockSetDevLevel(level, exp);
+  return api.post<{ level: number; exp: number; growthStage: number }>('/growth/dev-level', { level, exp });
 }

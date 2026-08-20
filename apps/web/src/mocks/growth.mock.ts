@@ -14,8 +14,11 @@ export async function mockGetGrowthResult(): Promise<GrowthResult> {
   return RESULT;
 }
 
-export async function mockSetDevLevel(level: number): Promise<{ level: number; exp: number; growthStage: number }> {
+export async function mockSetDevLevel(
+  level: number,
+  exp?: number,
+): Promise<{ level: number; exp: number; growthStage: number }> {
   await new Promise((r) => setTimeout(r, 150));
   const growthStage = level >= 100 ? 4 : level >= 60 ? 3 : level >= 30 ? 2 : 1;
-  return { level, exp: (level - 1) * 100, growthStage };
+  return { level, exp: exp ?? (level - 1) * 100, growthStage };
 }
