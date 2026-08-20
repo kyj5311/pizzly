@@ -5,6 +5,8 @@ const ITEMS: ShopItem[] = [
   { id: 'shop-gen-hat', section: 'GENERAL', name: '기본 모자', price: 5, priceUnit: 'LEVEL' },
   { id: 'shop-gen-shirt', section: 'GENERAL', name: '기본 티셔츠', price: 10, priceUnit: 'LEVEL' },
   { id: 'shop-gen-cushion', section: 'GENERAL', name: '곰 쿠션', price: 15, priceUnit: 'LEVEL' },
+  { id: 'shop-token-hat', section: 'TOKEN', name: '피즐리 모자', price: 60, priceUnit: 'TOKEN' },
+  { id: 'shop-token-scarf', section: 'TOKEN', name: '피즐리 스카프', price: 60, priceUnit: 'TOKEN' },
   { id: 'shop-token-costume', section: 'TOKEN', name: '희귀 코스튬', price: 150, priceUnit: 'TOKEN' },
   { id: 'shop-token-accessory', section: 'TOKEN', name: '한정 액세서리', price: 120, priceUnit: 'TOKEN' },
   { id: 'shop-token-booster', section: 'TOKEN', name: '경험치 부스터 (30분)', price: 80, priceUnit: 'TOKEN' },
