@@ -1,20 +1,60 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppScreen, BackHomeButton, Button, Card, PizzlyCharacter } from '../../../shared/ui';
+import { ApiError } from '../../../shared/api/types';
 import { COSTUME_ITEMS } from '../../../shared/ui/costume-items';
 import { PIZZLY_STAGES } from '../../../shared/ui/pizzly-stages';
 import { costumeStorage } from '../../../utils/costume-storage';
+import { devModeStorage } from '../../../utils/dev-mode-storage';
 import { inventoryStorage } from '../../../utils/inventory-storage';
+import { setDevLevel } from '../../growth/api/growthApi';
+import { getHomeStatus } from '../../home/api/homeApi';
 
 /** FE2 담당. 설정 화면 — 성장 단계 안내 + 코스튬 장착. */
 export default function SettingsPage() {
   const stagesAscending = [...PIZZLY_STAGES].reverse();
   const [equipped, setEquipped] = useState(() => costumeStorage.getEquipped());
   const [owned] = useState(() => inventoryStorage.getOwned());
+  const [devMode, setDevMode] = useState(() => devModeStorage.isOn());
+  const [currentLevel, setCurrentLevel] = useState<number | null>(null);
+  const [levelInput, setLevelInput] = useState('');
+  const [levelError, setLevelError] = useState<string | null>(null);
+  const [applyingLevel, setApplyingLevel] = useState(false);
+
+  useEffect(() => {
+    void getHomeStatus().then((status) => {
+      setCurrentLevel(status.characterLevel);
+      setLevelInput(String(status.characterLevel));
+    });
+  }, []);
 
   const handleToggle = (id: (typeof COSTUME_ITEMS)[number]['id']) => {
     costumeStorage.toggle(id);
     setEquipped(costumeStorage.getEquipped());
+  };
+
+  const handleToggleDevMode = () => {
+    const next = !devMode;
+    devModeStorage.set(next);
+    setDevMode(next);
+  };
+
+  const handleApplyLevel = async () => {
+    const level = Number(levelInput);
+    if (!Number.isInteger(level) || level < 1) {
+      setLevelError('1 이상의 정수를 입력해 주세요.');
+      return;
+    }
+    setApplyingLevel(true);
+    setLevelError(null);
+    try {
+      const result = await setDevLevel(level);
+      setCurrentLevel(result.level);
+    } catch (err) {
+      setLevelError(err instanceof ApiError ? err.message : '레벨 변경에 실패했어요.');
+    } finally {
+      setApplyingLevel(false);
+    }
   };
 
   const ownedCostumes = COSTUME_ITEMS.filter((item) => owned.includes(item.shopItemId));
@@ -82,6 +122,44 @@ export default function SettingsPage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section className="mt-6 border-t border-border pt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold">개발자 모드</h2>
+            <p className="text-xs text-muted">QA용 기능이에요. 레벨을 직접 바꿔볼 수 있어요.</p>
+          </div>
+          <Button variant={devMode ? 'primary' : 'secondary'} onClick={handleToggleDevMode}>
+            {devMode ? '켜짐' : '꺼짐'}
+          </Button>
+        </div>
+
+        {devMode && (
+          <Card className="mt-3">
+            <p className="mb-2 text-sm text-muted">
+              현재 레벨: <span className="font-semibold text-text">{currentLevel ?? '-'}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                value={levelInput}
+                onChange={(e) => setLevelInput(e.target.value)}
+                className="w-full rounded-button border border-border bg-surface px-3 py-2 text-sm"
+                placeholder="레벨 입력"
+              />
+              <Button
+                className="shrink-0 whitespace-nowrap"
+                disabled={applyingLevel}
+                onClick={() => void handleApplyLevel()}
+              >
+                {applyingLevel ? '적용 중' : '적용'}
+              </Button>
+            </div>
+            {levelError && <p className="mt-2 text-sm text-danger">{levelError}</p>}
+          </Card>
+        )}
       </section>
     </AppScreen>
   );

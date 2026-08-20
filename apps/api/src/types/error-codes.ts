@@ -65,6 +65,10 @@ export const GROWTH_ERROR_CODES = {
   GROWTH_002: {
     code: 'GROWTH_002',
     message: '경험치 값이 유효하지 않습니다.'
+  },
+  GROWTH_003: {
+    code: 'GROWTH_003',
+    message: '레벨 값이 유효하지 않습니다.'
   }
 } as const
 
