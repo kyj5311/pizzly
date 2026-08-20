@@ -6,6 +6,7 @@ import { ApiError } from '../../../shared/api/types';
 import { appearanceStorage } from '../../../utils/appearance-storage';
 import { inventoryStorage } from '../../../utils/inventory-storage';
 import { COSTUME_ITEMS } from '../../../shared/ui/costume-items';
+import { SHOP_ITEM_IMAGES } from '../../../shared/ui/shop-item-images';
 import { getShopItems, purchaseItem } from '../api/shopApi';
 import type { ShopItem, ShopSection } from '../types';
 
@@ -29,7 +30,13 @@ export default function ShopPage() {
   const [owned, setOwned] = useState<string[]>(() => inventoryStorage.getOwned());
 
   useEffect(() => {
-    void getShopItems().then(setItems);
+    void getShopItems().then((fetched) => {
+      setItems(fetched);
+      // 서버가 이미 구매된 걸로 내려준 상품은 로컬 보유 목록에도 반영해서
+      // 설정/캐릭터 착용 화면(로컬 inventoryStorage 기준)과 어긋나지 않게 한다.
+      fetched.filter((i) => i.owned).forEach((i) => inventoryStorage.markOwned(i.id));
+      setOwned(inventoryStorage.getOwned());
+    });
   }, []);
 
   const current = SECTIONS.find((s) => s.key === section)!;
@@ -90,7 +97,17 @@ export default function ShopPage() {
           return (
             <Card key={item.id} className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <Icon name={current.icon} size={48} />
+                {SHOP_ITEM_IMAGES[item.id] ? (
+                  <img
+                    src={SHOP_ITEM_IMAGES[item.id]}
+                    alt={item.name}
+                    width={48}
+                    height={48}
+                    className="h-12 w-12 shrink-0 object-contain"
+                  />
+                ) : (
+                  <Icon name={current.icon} size={48} />
+                )}
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{item.name}</p>
                   <p className="whitespace-nowrap text-xs text-muted">{priceLabel(item)}</p>
