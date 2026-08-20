@@ -8,7 +8,7 @@ export async function getShopItems(): Promise<ShopItem[]> {
   return api.get<ShopItem[]>('/shop/items');
 }
 
-export async function purchaseItem(itemId: string): Promise<{ success: true }> {
+export async function purchaseItem(itemId: string): Promise<{ success: true; tokenBalance?: number }> {
   if (USE_MOCK) return mockPurchaseItem(itemId);
-  return api.post<{ success: true }>(`/shop/items/${itemId}/purchase`);
+  return api.post<{ success: true; tokenBalance: number }>(`/shop/items/${itemId}/purchase`);
 }
