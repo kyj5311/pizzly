@@ -21,4 +21,5 @@ export const costumeStorage = {
     localStorage.setItem(KEY, JSON.stringify(next));
     return next.includes(id);
   },
+  clear: () => localStorage.removeItem(KEY),
 };

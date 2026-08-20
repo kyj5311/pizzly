@@ -19,4 +19,5 @@ export const inventoryStorage = {
       localStorage.setItem(KEY, JSON.stringify([...current, itemId]));
     }
   },
+  clear: () => localStorage.removeItem(KEY),
 };

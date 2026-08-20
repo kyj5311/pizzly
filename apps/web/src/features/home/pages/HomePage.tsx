@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppScreen, Button, Card, Icon, Modal, PizzlyCharacter, ProgressBar } from '../../../shared/ui';
 import type { IconName } from '../../../shared/ui';
-import { tokenStorage } from '../../../utils/storage';
+import { logout } from '../../../api/auth-api';
 import { usePwaInstall } from '../../../pwa/use-pwa-install';
 import { getHomeStatus } from '../api/homeApi';
 import type { HomeStatus } from '../types';
@@ -32,7 +32,7 @@ export default function HomePage() {
   }, []);
 
   const handleLogout = () => {
-    tokenStorage.clear();
+    logout();
     navigate('/login');
   };
 
