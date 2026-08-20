@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from 'express'
 import type { AuthedRequest } from '../middlewares/auth.middleware'
-import { getLatestGrowthResult, setDevLevel } from '../services/growth.service'
+import { getLatestGrowthResult, setDevLevel, setDevToken } from '../services/growth.service'
 import { GROWTH_ERROR_CODES } from '../types/error-codes'
 import { sendError, sendSuccess } from '../utils/response'
 
@@ -33,6 +33,24 @@ export async function devSetLevel(req: AuthedRequest, res: Response, next: NextF
   try {
     const result = await setDevLevel(userId, level, exp)
     sendSuccess(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// 설정 화면 "개발자 모드" 전용. 토큰 잔액을 직접 지정한다.
+export async function devSetToken(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+  const { token } = req.body
+
+  if (!Number.isInteger(token) || token < 0) {
+    sendError(res, 400, GROWTH_ERROR_CODES.GROWTH_004)
+    return
+  }
+
+  try {
+    const result = await setDevToken(userId, token)
+    sendSuccess(res, { token: result })
   } catch (err) {
     next(err)
   }
