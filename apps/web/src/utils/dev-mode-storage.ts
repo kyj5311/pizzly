@@ -25,4 +25,8 @@ export const devModeStorage = {
   },
   setSnapshot: (snapshot: LevelSnapshot) => localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot)),
   clearSnapshot: () => localStorage.removeItem(SNAPSHOT_KEY),
+  clear: () => {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(SNAPSHOT_KEY);
+  },
 };

@@ -7,4 +7,5 @@ const RESET_KEY = 'pizzly.appearanceResetToBase';
 export const appearanceStorage = {
   isResetToBase: () => localStorage.getItem(RESET_KEY) === 'true',
   setResetToBase: (value: boolean) => localStorage.setItem(RESET_KEY, String(value)),
+  clear: () => localStorage.removeItem(RESET_KEY),
 };
