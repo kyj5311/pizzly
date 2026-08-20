@@ -1,0 +1,24 @@
+/* ============================================================
+   디자인 토큰 (v2 — pizzly_images 아이콘/캐릭터 에셋 기준)
+   소유자: FE2 — 실제 DS 시안 도착 시 이 파일의 "값만" 교체한다.
+   컴포넌트에서 hex 를 직접 쓰지 말 것. bg-primary 처럼 의미 이름만 사용.
+   ============================================================ */
+:root {
+  --color-primary: #8B5CF6;
+  --color-primary-strong: #7C3AED;
+  --color-accent: #3DA35D;
+  --color-accent-strong: #2F8A4C;
+  --color-gold: #F5A623;
+  --color-gold-strong: #D98C12;
+  --color-bg: #F7F5FC;
+  --color-surface: #FFFFFF;
+  --color-border: #EAE5F7;
+  --color-text: #241B3A;
+  --color-text-muted: #8E85A3;
+  --color-danger: #EF4444;
+
+  --radius-card: 16px;
+  --radius-button: 12px;
+
+  --shadow-card: 0 2px 12px rgba(36, 27, 58, 0.07);
+}

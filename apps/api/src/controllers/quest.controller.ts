@@ -1,0 +1,125 @@
+import type { NextFunction, Response } from 'express'
+import type { AuthedRequest } from '../middlewares/auth.middleware'
+import { listQuests, recommendQuests, setQuestBookmark } from '../services/quest.service'
+import { completeQuestAndGrantRewards } from '../services/reward.service'
+import { prisma } from '../utils/prisma'
+import { sendError, sendSuccess } from '../utils/response'
+import { QUEST_ERROR_CODES } from '../types/error-codes'
+import type { QuestCondition, QuestDurationMinutes, QuestSituation } from '../types/quest'
+
+const VALID_DURATIONS: QuestDurationMinutes[] = [1, 3, 5]
+const VALID_SITUATIONS: QuestSituation[] = ['SITTING', 'STANDING', 'MOVING', 'QUIET_PLACE']
+const VALID_CONDITIONS: QuestCondition[] = ['EYE_FATIGUE', 'WRIST_FINGER', 'NECK_SHOULDER', 'REST']
+
+export async function recommend(
+  req: AuthedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { duration, situation, condition } = req.body
+
+  if (
+    !VALID_DURATIONS.includes(duration) ||
+    !VALID_SITUATIONS.includes(situation) ||
+    !VALID_CONDITIONS.includes(condition)
+  ) {
+    sendError(res, 400, QUEST_ERROR_CODES.QUEST_002)
+    return
+  }
+
+  const userId = req.userId as string
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { onboarding: true } })
+    const restrictions = (user?.onboarding?.restrictions as string[] | null) ?? []
+
+    const quests = await recommendQuests(userId, { duration, situation, condition }, restrictions)
+
+    if (quests.length === 0) {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_001)
+      return
+    }
+
+    sendSuccess(res, { quests })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// FE2 퀘스트 목록(둘러보기 카탈로그)용
+export async function list(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+
+  try {
+    const quests = await listQuests(userId)
+    sendSuccess(res, quests)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// 퀘스트 목록 화면 보관함(♡) 토글
+export async function setBookmark(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+  const { id } = req.params
+  const saved = req.method === 'POST'
+
+  try {
+    const error = await setQuestBookmark(userId, id, saved)
+    if (error === 'NOT_FOUND') {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    sendSuccess(res, { saved })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// QST-05 가이드 화면용 상세 조회. 추천 응답은 요약값만 주므로 steps/guideType 등은 여기서 별도 조회한다.
+export async function detail(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const { id } = req.params
+
+  try {
+    const quest = await prisma.quest.findUnique({ where: { id } })
+    if (!quest) {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    sendSuccess(res, quest)
+  } catch (err) {
+    next(err)
+  }
+}
+
+// QST-07: 퀘스트 완료. 완료 로그 생성 + 보상 지급(REW-01~04) + 성장 반영(GRW-01/02)
+export async function complete(req: AuthedRequest, res: Response, next: NextFunction): Promise<void> {
+  const userId = req.userId as string
+  const { questId, elapsedSeconds } = req.body
+
+  if (typeof questId !== 'string' || questId.length === 0) {
+    sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+    return
+  }
+  if (!Number.isInteger(elapsedSeconds) || elapsedSeconds < 0) {
+    sendError(res, 400, QUEST_ERROR_CODES.QUEST_005)
+    return
+  }
+
+  try {
+    const quest = await prisma.quest.findUnique({ where: { id: questId } })
+    if (!quest) {
+      sendError(res, 400, QUEST_ERROR_CODES.QUEST_003)
+      return
+    }
+
+    const questLog = await prisma.questLog.create({ data: { userId, questId, elapsedSeconds } })
+    const result = await completeQuestAndGrantRewards(userId, questLog.id, quest.duration)
+
+    sendSuccess(res, result)
+  } catch (err) {
+    next(err)
+  }
+}
