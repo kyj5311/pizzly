@@ -56,6 +56,34 @@ export async function applyGrowth(userId: string, expGained: number): Promise<Ap
   }
 }
 
+export interface DevSetLevelResult {
+  level: number
+  exp: number
+  growthStage: number
+}
+
+// 개발자 모드 전용. QA/데모에서 레벨 게이트(상점 해금, 성장 단계)를 빠르게 확인하려고
+// 레벨을 직접 지정한다. exp를 안 넘기면 해당 레벨의 시작 경험치로 맞춰서, 이후 퀘스트를 더
+// 완료해도 applyGrowth가 계산하는 레벨과 어긋나지 않게 한다. exp를 넘기면(개발자 모드 끌 때
+// 원래 값으로 되돌리는 용도) 그 값을 그대로 사용한다.
+export async function setDevLevel(userId: string, level: number, exp?: number): Promise<DevSetLevelResult> {
+  const nextExp = exp ?? (level - 1) * EXP_PER_LEVEL
+  const growthStage = calculateGrowthStage(level)
+
+  const updated = await prisma.pizzly.update({
+    where: { userId },
+    data: { level, exp: nextExp, growthStage }
+  })
+
+  return { level: updated.level, exp: updated.exp, growthStage: updated.growthStage }
+}
+
+// 개발자 모드 전용. 토큰 잔액을 직접 지정한다.
+export async function setDevToken(userId: string, token: number): Promise<number> {
+  const updated = await prisma.pizzly.update({ where: { userId }, data: { token } })
+  return updated.token
+}
+
 // GET /api/growth/latest 용. 마지막 퀘스트 완료에서 얻은 경험치를 역산해서 "직전 레벨"을 구한다
 // (레벨별 이력을 따로 저장하지 않아서, 현재 누적치에서 마지막으로 얻은 만큼을 빼는 방식으로 계산)
 export async function getLatestGrowthResult(userId: string): Promise<LatestGrowthResult> {

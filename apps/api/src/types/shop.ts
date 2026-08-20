@@ -8,3 +8,8 @@ export interface ShopItem {
   price: number
   priceUnit: 'LEVEL' | 'TOKEN' | 'KRW'
 }
+
+// GET /api/shop/items 응답용. 로그인한 사용자의 구매 여부를 합쳐서 내려준다.
+export interface ShopItemView extends ShopItem {
+  owned: boolean
+}

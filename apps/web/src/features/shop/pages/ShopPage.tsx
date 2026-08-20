@@ -5,12 +5,12 @@ import { cn } from '../../../shared/lib/cn';
 import { ApiError } from '../../../shared/api/types';
 import { appearanceStorage } from '../../../utils/appearance-storage';
 import { inventoryStorage } from '../../../utils/inventory-storage';
-import { getAccessoryByShopItemId } from '../../../shared/ui/accessory-items';
-import { getHomeStatus } from '../../home/api/homeApi';
+import { COSTUME_ITEMS } from '../../../shared/ui/costume-items';
 import { getShopItems, purchaseItem } from '../api/shopApi';
 import type { ShopItem, ShopSection } from '../types';
 
 const RESET_APPEARANCE_ITEM_ID = 'shop-token-reset-appearance';
+const COSTUME_SHOP_ITEM_IDS = new Set(COSTUME_ITEMS.map((c) => c.shopItemId));
 
 const SECTIONS: { key: ShopSection; label: string; desc: string; icon: IconName }[] = [
   { key: 'GENERAL', label: '일반 상품', desc: '레벨·경험치 조건 달성 시 해금돼요', icon: 'shop' },
@@ -27,12 +27,9 @@ export default function ShopPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [resetToBase, setResetToBase] = useState(() => appearanceStorage.isResetToBase());
   const [owned, setOwned] = useState<string[]>(() => inventoryStorage.getOwned());
-  const [characterLevel, setCharacterLevel] = useState<number | null>(null);
 
   useEffect(() => {
     void getShopItems().then(setItems);
-    // LEVEL 상품 해금 여부 판정용. 실제 검증은 서버 몫이고, 여긴 UX상 버튼 활성화만 위한 참고값.
-    void getHomeStatus().then((s) => setCharacterLevel(s.characterLevel));
   }, []);
 
   const current = SECTIONS.find((s) => s.key === section)!;
@@ -50,7 +47,7 @@ export default function ShopPage() {
         appearanceStorage.setResetToBase(true);
         setResetToBase(true);
         setMessage('피즐리가 아기 곰으로 돌아갔어요!');
-      } else if (getAccessoryByShopItemId(item.id)) {
+      } else if (COSTUME_SHOP_ITEM_IDS.has(item.id)) {
         setMessage(`${item.name}을(를) 구매했어요! 설정에서 착용해 보세요.`);
       } else {
         setMessage(`${item.name}을(를) 구매했어요!`);
@@ -90,16 +87,10 @@ export default function ShopPage() {
           const alreadyApplied = isResetItem && resetToBase;
           const isOwned = owned.includes(item.id);
           const locked = alreadyApplied || (isOwned && !isResetItem);
-          const unlocked = item.priceUnit !== 'LEVEL' || (characterLevel !== null && characterLevel >= item.price);
-          const thumbnail = getAccessoryByShopItemId(item.id)?.image;
           return (
             <Card key={item.id} className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                {thumbnail ? (
-                  <img src={thumbnail} alt={item.name} className="h-12 w-12 shrink-0 object-contain" />
-                ) : (
-                  <Icon name={current.icon} size={48} />
-                )}
+                <Icon name={current.icon} size={48} />
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{item.name}</p>
                   <p className="whitespace-nowrap text-xs text-muted">{priceLabel(item)}</p>
@@ -108,14 +99,14 @@ export default function ShopPage() {
               <Button
                 variant="secondary"
                 className="shrink-0 whitespace-nowrap"
-                disabled={purchasingId === item.id || !unlocked || locked}
+                disabled={purchasingId === item.id || item.priceUnit === 'LEVEL' || locked}
                 onClick={() => void handlePurchase(item)}
               >
                 {alreadyApplied
                   ? '적용됨'
                   : isOwned
                     ? '보유중'
-                    : !unlocked
+                    : item.priceUnit === 'LEVEL'
                       ? '해금 대기'
                       : purchasingId === item.id
                         ? '구매 중'

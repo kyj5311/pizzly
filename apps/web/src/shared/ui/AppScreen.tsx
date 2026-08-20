@@ -13,7 +13,7 @@ interface AppScreenProps {
 /** 모바일 기준 공통 화면 껍데기. 페이지마다 레이아웃을 따로 짜지 않기 위한 것. */
 export function AppScreen({ title, subtitle, header, footer, children }: AppScreenProps) {
   return (
-    <div className="mx-auto flex h-full w-full max-w-md flex-col px-5 pb-6 pt-8">
+    <div className="mx-auto flex h-full w-full max-w-md flex-col px-5 pb-12 pt-8">
       {header}
       {(title || subtitle) && (
         <div className="mb-4">
