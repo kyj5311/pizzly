@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react';
 import { appearanceStorage } from '../../utils/appearance-storage';
 import { costumeStorage } from '../../utils/costume-storage';
+import { inventoryStorage } from '../../utils/inventory-storage';
 import { cn } from '../lib/cn';
 import { COSTUME_ITEMS } from './costume-items';
 import { getPizzlyStage } from './pizzly-stages';
@@ -26,7 +27,9 @@ export function PizzlyCharacter({ level, size = 160, className }: PizzlyCharacte
   const { image: src, name: alt } = stage;
   // 코스튬은 아기 곰(base) 포즈에서 잘라낸 것이라 그 단계에서만 위치가 정확히 맞는다.
   const showCostumes = stage.minLevel === 1;
-  const equipped = showCostumes ? COSTUME_ITEMS.filter((item) => costumeStorage.isEquipped(item.id)) : [];
+  const equipped = showCostumes
+    ? COSTUME_ITEMS.filter((item) => inventoryStorage.isOwned(item.shopItemId) && costumeStorage.isEquipped(item.id))
+    : [];
   const wrapRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
