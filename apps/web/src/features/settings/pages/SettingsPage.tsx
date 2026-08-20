@@ -7,7 +7,7 @@ import { PIZZLY_STAGES } from '../../../shared/ui/pizzly-stages';
 import { costumeStorage } from '../../../utils/costume-storage';
 import { devModeStorage } from '../../../utils/dev-mode-storage';
 import { inventoryStorage } from '../../../utils/inventory-storage';
-import { setDevLevel } from '../../growth/api/growthApi';
+import { setDevLevel, setDevToken } from '../../growth/api/growthApi';
 import { getHomeStatus } from '../../home/api/homeApi';
 
 /** FE2 담당. 설정 화면 — 성장 단계 안내 + 코스튬 장착. */
@@ -18,9 +18,13 @@ export default function SettingsPage() {
   const [devMode, setDevMode] = useState(() => devModeStorage.isOn());
   const [currentLevel, setCurrentLevel] = useState<number | null>(null);
   const [currentExp, setCurrentExp] = useState<number | null>(null);
+  const [currentToken, setCurrentToken] = useState<number | null>(null);
   const [levelInput, setLevelInput] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
   const [levelError, setLevelError] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const [applyingLevel, setApplyingLevel] = useState(false);
+  const [applyingToken, setApplyingToken] = useState(false);
   const [restoringLevel, setRestoringLevel] = useState(false);
 
   useEffect(() => {
@@ -29,10 +33,12 @@ export default function SettingsPage() {
       const exp = (status.characterLevel - 1) * 100 + status.growthCurrent;
       setCurrentLevel(status.characterLevel);
       setCurrentExp(exp);
+      setCurrentToken(status.tokenBalance);
       setLevelInput(String(status.characterLevel));
+      setTokenInput(String(status.tokenBalance));
       // 새로고침 등으로 개발자 모드가 켜진 채 다시 들어온 경우, snapshot이 없으면 지금 값을 원본으로 저장한다.
       if (devModeStorage.isOn() && !devModeStorage.getSnapshot()) {
-        devModeStorage.setSnapshot({ level: status.characterLevel, exp });
+        devModeStorage.setSnapshot({ level: status.characterLevel, exp, token: status.tokenBalance });
       }
     });
   }, []);
@@ -45,15 +51,15 @@ export default function SettingsPage() {
   const handleToggleDevMode = async () => {
     if (!devMode) {
       // 켤 때: 지금 값을 원본으로 저장해둔다.
-      if (currentLevel !== null && currentExp !== null) {
-        devModeStorage.setSnapshot({ level: currentLevel, exp: currentExp });
+      if (currentLevel !== null && currentExp !== null && currentToken !== null) {
+        devModeStorage.setSnapshot({ level: currentLevel, exp: currentExp, token: currentToken });
       }
       devModeStorage.set(true);
       setDevMode(true);
       return;
     }
 
-    // 끌 때: 저장해둔 원본 레벨/경험치로 되돌린다.
+    // 끌 때: 저장해둔 원본 레벨/경험치/토큰으로 되돌린다.
     const snapshot = devModeStorage.getSnapshot();
     if (!snapshot) {
       devModeStorage.set(false);
@@ -64,15 +70,20 @@ export default function SettingsPage() {
     setRestoringLevel(true);
     setLevelError(null);
     try {
-      const result = await setDevLevel(snapshot.level, snapshot.exp);
-      setCurrentLevel(result.level);
-      setCurrentExp(result.exp);
-      setLevelInput(String(result.level));
+      const [levelResult, tokenResult] = await Promise.all([
+        setDevLevel(snapshot.level, snapshot.exp),
+        setDevToken(snapshot.token),
+      ]);
+      setCurrentLevel(levelResult.level);
+      setCurrentExp(levelResult.exp);
+      setCurrentToken(tokenResult.token);
+      setLevelInput(String(levelResult.level));
+      setTokenInput(String(tokenResult.token));
       devModeStorage.clearSnapshot();
       devModeStorage.set(false);
       setDevMode(false);
     } catch (err) {
-      setLevelError(err instanceof ApiError ? err.message : '원래 레벨로 되돌리는 데 실패했어요.');
+      setLevelError(err instanceof ApiError ? err.message : '원래 값으로 되돌리는 데 실패했어요.');
     } finally {
       setRestoringLevel(false);
     }
@@ -94,6 +105,24 @@ export default function SettingsPage() {
       setLevelError(err instanceof ApiError ? err.message : '레벨 변경에 실패했어요.');
     } finally {
       setApplyingLevel(false);
+    }
+  };
+
+  const handleApplyToken = async () => {
+    const token = Number(tokenInput);
+    if (!Number.isInteger(token) || token < 0) {
+      setTokenError('0 이상의 정수를 입력해 주세요.');
+      return;
+    }
+    setApplyingToken(true);
+    setTokenError(null);
+    try {
+      const result = await setDevToken(token);
+      setCurrentToken(result.token);
+    } catch (err) {
+      setTokenError(err instanceof ApiError ? err.message : '토큰 변경에 실패했어요.');
+    } finally {
+      setApplyingToken(false);
     }
   };
 
@@ -168,7 +197,7 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-bold">개발자 모드</h2>
-            <p className="text-xs text-muted">QA용 기능이에요. 레벨을 직접 바꿔볼 수 있어요.</p>
+            <p className="text-xs text-muted">QA용 기능이에요. 레벨·토큰을 직접 바꿔볼 수 있어요.</p>
           </div>
           <Button
             variant={devMode ? 'primary' : 'secondary'}
@@ -202,6 +231,32 @@ export default function SettingsPage() {
               </Button>
             </div>
             {levelError && <p className="mt-2 text-sm text-danger">{levelError}</p>}
+          </Card>
+        )}
+
+        {devMode && (
+          <Card className="mt-3">
+            <p className="mb-2 text-sm text-muted">
+              현재 토큰: <span className="font-semibold text-text">{currentToken ?? '-'}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                className="w-full rounded-button border border-border bg-surface px-3 py-2 text-sm"
+                placeholder="토큰 입력"
+              />
+              <Button
+                className="shrink-0 whitespace-nowrap"
+                disabled={applyingToken}
+                onClick={() => void handleApplyToken()}
+              >
+                {applyingToken ? '적용 중' : '적용'}
+              </Button>
+            </div>
+            {tokenError && <p className="mt-2 text-sm text-danger">{tokenError}</p>}
           </Card>
         )}
       </section>
