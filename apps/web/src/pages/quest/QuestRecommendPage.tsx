@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, RefreshCw } from 'lucide-react';
-import { AppScreen, Button, Card } from '../../shared/ui';
+import { AppScreen, BackHomeButton, Button, Card } from '../../shared/ui';
 import { recommendQuest } from '../../api/quest-api';
 import { ApiError } from '../../types/api';
 import { useQuestFlow } from '../../store/quest-flow-store';
@@ -53,12 +53,16 @@ export default function QuestRecommendPage() {
   }, []);
 
   if (status === 'loading') {
-    return <AppScreen title="피즐리가 고르는 중이에요" />;
+    return <AppScreen header={<BackHomeButton />} title="피즐리가 고르는 중이에요" />;
   }
 
   if (status === 'empty') {
     return (
-      <AppScreen title="지금 조건에 맞는 퀘스트가 없어요" subtitle="조건을 조금 바꿔볼까요?">
+      <AppScreen
+        header={<BackHomeButton />}
+        title="지금 조건에 맞는 퀘스트가 없어요"
+        subtitle="조건을 조금 바꿔볼까요?"
+      >
         <Button fullWidth onClick={() => navigate('/quest/time')}>
           다시 고르기
         </Button>
@@ -68,7 +72,11 @@ export default function QuestRecommendPage() {
 
   if (status === 'error' || !quest) {
     return (
-      <AppScreen title="퀘스트를 불러오지 못했어요" subtitle="잠시 후 다시 시도해 주세요.">
+      <AppScreen
+        header={<BackHomeButton />}
+        title="퀘스트를 불러오지 못했어요"
+        subtitle="잠시 후 다시 시도해 주세요."
+      >
         <Button fullWidth onClick={() => void load()}>
           다시 시도
         </Button>
@@ -79,6 +87,7 @@ export default function QuestRecommendPage() {
 
   return (
     <AppScreen
+      header={<BackHomeButton />}
       title="이건 어때요?"
       footer={
         <div className="flex flex-col gap-3">

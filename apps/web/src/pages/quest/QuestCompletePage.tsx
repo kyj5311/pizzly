@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PartyPopper } from 'lucide-react';
-import { AppScreen, Button, Card } from '../../shared/ui';
+import { AppScreen, BackHomeButton, Button, Card } from '../../shared/ui';
 import { RewardBoxModal } from '../../components/reward/RewardBoxModal';
 import { completeQuest } from '../../api/quest-api';
 import { useQuestFlow } from '../../store/quest-flow-store';
@@ -41,6 +41,7 @@ export default function QuestCompletePage() {
 
   return (
     <AppScreen
+      header={<BackHomeButton />}
       title="퀘스트 완료!"
       subtitle="피즐리가 조금 더 자랐어요."
       footer={
