@@ -1,18 +1,23 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppScreen, BackHomeButton, Button, Card, PizzlyCharacter } from '../../../shared/ui';
 import { COSTUME_ITEMS } from '../../../shared/ui/costume-items';
 import { PIZZLY_STAGES } from '../../../shared/ui/pizzly-stages';
 import { costumeStorage } from '../../../utils/costume-storage';
+import { inventoryStorage } from '../../../utils/inventory-storage';
 
 /** FE2 담당. 설정 화면 — 성장 단계 안내 + 코스튬 장착. */
 export default function SettingsPage() {
   const stagesAscending = [...PIZZLY_STAGES].reverse();
   const [equipped, setEquipped] = useState(() => costumeStorage.getEquipped());
+  const [owned] = useState(() => inventoryStorage.getOwned());
 
   const handleToggle = (id: (typeof COSTUME_ITEMS)[number]['id']) => {
     costumeStorage.toggle(id);
     setEquipped(costumeStorage.getEquipped());
   };
+
+  const ownedCostumes = COSTUME_ITEMS.filter((item) => owned.includes(item.shopItemId));
 
   return (
     <AppScreen header={<BackHomeButton />} title="설정">
@@ -24,22 +29,31 @@ export default function SettingsPage() {
           <PizzlyCharacter level={1} size={140} />
         </Card>
 
-        <div className="space-y-2">
-          {COSTUME_ITEMS.map((item) => {
-            const isOn = equipped.includes(item.id);
-            return (
-              <Card key={item.id} className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <img src={item.image} alt={item.name} width={40} height={40} className="h-10 w-10 object-contain" />
-                  <p className="font-semibold">{item.name}</p>
-                </div>
-                <Button variant={isOn ? 'primary' : 'secondary'} onClick={() => handleToggle(item.id)}>
-                  {isOn ? '착용 중' : '착용하기'}
-                </Button>
-              </Card>
-            );
-          })}
-        </div>
+        {ownedCostumes.length === 0 ? (
+          <Card className="flex flex-col items-center gap-2 py-6 text-center">
+            <p className="text-sm text-muted">아직 보유한 코스튬이 없어요.</p>
+            <Link to="/shop" className="text-sm font-semibold text-primary active:opacity-70">
+              상점에서 구매하러 가기 →
+            </Link>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {ownedCostumes.map((item) => {
+              const isOn = equipped.includes(item.id);
+              return (
+                <Card key={item.id} className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <img src={item.image} alt={item.name} width={40} height={40} className="h-10 w-10 object-contain" />
+                    <p className="font-semibold">{item.name}</p>
+                  </div>
+                  <Button variant={isOn ? 'primary' : 'secondary'} onClick={() => handleToggle(item.id)}>
+                    {isOn ? '착용 중' : '착용하기'}
+                  </Button>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section>
