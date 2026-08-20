@@ -3,18 +3,24 @@ import { Link } from 'react-router-dom';
 import { AppScreen, BackHomeButton, Button, Card, PizzlyCharacter } from '../../../shared/ui';
 import { ApiError } from '../../../shared/api/types';
 import { COSTUME_ITEMS } from '../../../shared/ui/costume-items';
+import { SHOP_ITEM_IMAGES } from '../../../shared/ui/shop-item-images';
 import { PIZZLY_STAGES } from '../../../shared/ui/pizzly-stages';
 import { costumeStorage } from '../../../utils/costume-storage';
 import { devModeStorage } from '../../../utils/dev-mode-storage';
 import { inventoryStorage } from '../../../utils/inventory-storage';
 import { setDevLevel, setDevToken } from '../../growth/api/growthApi';
 import { getHomeStatus } from '../../home/api/homeApi';
+import { getShopItems } from '../../shop/api/shopApi';
+import type { ShopItem } from '../../shop/types';
+
+const COSTUME_BY_SHOP_ITEM_ID = new Map(COSTUME_ITEMS.map((c) => [c.shopItemId, c]));
 
 /** FE2 담당. 설정 화면 — 성장 단계 안내 + 코스튬 장착. */
 export default function SettingsPage() {
   const stagesAscending = [...PIZZLY_STAGES].reverse();
   const [equipped, setEquipped] = useState(() => costumeStorage.getEquipped());
-  const [owned] = useState(() => inventoryStorage.getOwned());
+  const [owned, setOwned] = useState(() => inventoryStorage.getOwned());
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
   const [devMode, setDevMode] = useState(() => devModeStorage.isOn());
   const [currentLevel, setCurrentLevel] = useState<number | null>(null);
   const [currentExp, setCurrentExp] = useState<number | null>(null);
@@ -26,6 +32,15 @@ export default function SettingsPage() {
   const [applyingLevel, setApplyingLevel] = useState(false);
   const [applyingToken, setApplyingToken] = useState(false);
   const [restoringLevel, setRestoringLevel] = useState(false);
+
+  useEffect(() => {
+    void getShopItems().then((fetched) => {
+      setShopItems(fetched);
+      // 서버가 이미 구매된 걸로 내려준 상품은 로컬 보유 목록에도 반영한다(ShopPage와 동일 처리).
+      fetched.filter((i) => i.owned).forEach((i) => inventoryStorage.markOwned(i.id));
+      setOwned(inventoryStorage.getOwned());
+    });
+  }, []);
 
   useEffect(() => {
     void getHomeStatus().then((status) => {
@@ -126,7 +141,7 @@ export default function SettingsPage() {
     }
   };
 
-  const ownedCostumes = COSTUME_ITEMS.filter((item) => owned.includes(item.shopItemId));
+  const ownedShopItems = shopItems.filter((item) => owned.includes(item.id));
 
   return (
     <AppScreen header={<BackHomeButton />} title="설정">
@@ -138,7 +153,7 @@ export default function SettingsPage() {
           <PizzlyCharacter level={1} size={140} />
         </Card>
 
-        {ownedCostumes.length === 0 ? (
+        {ownedShopItems.length === 0 ? (
           <Card className="flex flex-col items-center gap-2 py-6 text-center">
             <p className="text-sm text-muted">아직 보유한 코스튬이 없어요.</p>
             <Link to="/shop" className="text-sm font-semibold text-primary active:opacity-70">
@@ -147,17 +162,27 @@ export default function SettingsPage() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {ownedCostumes.map((item) => {
-              const isOn = equipped.includes(item.id);
+            {ownedShopItems.map((item) => {
+              const costume = COSTUME_BY_SHOP_ITEM_ID.get(item.id);
+              const image = costume?.image ?? SHOP_ITEM_IMAGES[item.id];
+              const isOn = costume != null && equipped.includes(costume.id);
               return (
                 <Card key={item.id} className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <img src={item.image} alt={item.name} width={40} height={40} className="h-10 w-10 object-contain" />
+                    {image && (
+                      <img src={image} alt={item.name} width={40} height={40} className="h-10 w-10 object-contain" />
+                    )}
                     <p className="font-semibold">{item.name}</p>
                   </div>
-                  <Button variant={isOn ? 'primary' : 'secondary'} onClick={() => handleToggle(item.id)}>
-                    {isOn ? '착용 중' : '착용하기'}
-                  </Button>
+                  {costume ? (
+                    <Button variant={isOn ? 'primary' : 'secondary'} onClick={() => handleToggle(costume.id)}>
+                      {isOn ? '착용 중' : '착용하기'}
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" disabled>
+                      착용 준비중
+                    </Button>
+                  )}
                 </Card>
               );
             })}
