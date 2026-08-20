@@ -7,13 +7,22 @@ export const SHOP_CATALOG: ShopItem[] = [
   { id: 'shop-gen-hat', section: 'GENERAL', name: '기본 모자', price: 5, priceUnit: 'LEVEL' },
   { id: 'shop-gen-shirt', section: 'GENERAL', name: '기본 티셔츠', price: 10, priceUnit: 'LEVEL' },
   { id: 'shop-gen-cushion', section: 'GENERAL', name: '곰 쿠션', price: 15, priceUnit: 'LEVEL' },
+  { id: 'shop-gen-glasses', section: 'GENERAL', name: '동그란 안경', price: 20, priceUnit: 'LEVEL' },
+  { id: 'shop-gen-scarf', section: 'GENERAL', name: '니트 목도리', price: 25, priceUnit: 'LEVEL' },
+  { id: 'shop-gen-bowtie', section: 'GENERAL', name: '리본 나비넥타이', price: 30, priceUnit: 'LEVEL' },
   { id: 'shop-token-costume', section: 'TOKEN', name: '희귀 코스튬', price: 150, priceUnit: 'TOKEN' },
   { id: 'shop-token-accessory', section: 'TOKEN', name: '한정 액세서리', price: 120, priceUnit: 'TOKEN' },
   { id: 'shop-token-booster', section: 'TOKEN', name: '경험치 부스터 (30분)', price: 80, priceUnit: 'TOKEN' },
   { id: 'shop-token-reset-appearance', section: 'TOKEN', name: '처음 곰으로 돌아가기', price: 50, priceUnit: 'TOKEN' },
+  { id: 'shop-token-cape', section: 'TOKEN', name: '반짝이는 망토', price: 200, priceUnit: 'TOKEN' },
+  { id: 'shop-token-crown', section: 'TOKEN', name: '미니 왕관', price: 180, priceUnit: 'TOKEN' },
+  { id: 'shop-token-wings', section: 'TOKEN', name: '솜사탕 날개', price: 100, priceUnit: 'TOKEN' },
   { id: 'shop-premium-starter', section: 'PREMIUM', name: '스타터 팩', price: 1200, priceUnit: 'KRW' },
   { id: 'shop-premium-theme', section: 'PREMIUM', name: '테마 세트', price: 5900, priceUnit: 'KRW' },
-  { id: 'shop-premium-pack', section: 'PREMIUM', name: '프리미엄 팩', price: 11900, priceUnit: 'KRW' }
+  { id: 'shop-premium-pack', section: 'PREMIUM', name: '프리미엄 팩', price: 11900, priceUnit: 'KRW' },
+  { id: 'shop-premium-hoodie', section: 'PREMIUM', name: '후드 세트', price: 2900, priceUnit: 'KRW' },
+  { id: 'shop-premium-fullset', section: 'PREMIUM', name: '시즌 풀세트', price: 8900, priceUnit: 'KRW' },
+  { id: 'shop-premium-limited', section: 'PREMIUM', name: '리미티드 에디션', price: 15900, priceUnit: 'KRW' }
 ]
 
 export function getShopCatalog(): ShopItem[] {
