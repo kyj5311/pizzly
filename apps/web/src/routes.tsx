@@ -9,7 +9,6 @@ import QuestSituationPage from './pages/quest/QuestSituationPage';
 import QuestConditionPage from './pages/quest/QuestConditionPage';
 import QuestRecommendPage from './pages/quest/QuestRecommendPage';
 import QuestGuidePage from './pages/quest/QuestGuidePage';
-import QuestPlayPage from './pages/quest/QuestPlayPage';
 import QuestCompletePage from './pages/quest/QuestCompletePage';
 import { OnboardingProvider } from './store/onboarding-store';
 import { QuestFlowProvider } from './store/quest-flow-store';
@@ -75,8 +74,8 @@ export const router = createBrowserRouter([
           { path: 'situation', element: <QuestSituationPage /> }, // QST-02
           { path: 'condition', element: <QuestConditionPage /> }, // QST-03
           { path: 'recommend', element: <QuestRecommendPage /> }, // QST-04
-          { path: 'guide', element: <QuestGuidePage /> }, // QST-05
-          { path: 'play', element: <QuestPlayPage /> }, // QST-06
+          { path: 'guide', element: <QuestGuidePage /> }, // QST-05, QST-06(가이드 화면에 타이머 통합)
+          { path: 'play', element: <Navigate to="/quest/guide" replace /> }, // 구버전 경로 호환
           { path: 'complete', element: <QuestCompletePage /> }, // QST-07
         ],
       },
